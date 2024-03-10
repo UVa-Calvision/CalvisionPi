@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Socket.h"
 #include <memory>
 
@@ -98,7 +100,9 @@ public:
     }
 
     virtual void read(Socket& socket) override {
+        std::cout << "Reading voltage...\n";
         socket.read<float>(voltage_);
+        std::cout << "Read voltage " << voltage_ << "\n";
     }
 
 #ifdef BUILD_SERVER

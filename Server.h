@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Command.h"
 
 class ServerListener {
@@ -17,8 +19,10 @@ public:
 
             std::cout << "Accepted client\n";
 
+            std::cout << "Reading command code...\n";
             uint16_t command_code = 0;
             client.read<uint16_t>(command_code);
+            std::cout << "Command code read: " << command_code << "\n";
 
             int16_t return_code = 0;
             std::unique_ptr<Command> command = create_command(command_code);
