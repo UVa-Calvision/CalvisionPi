@@ -1,8 +1,10 @@
-#include "gpio_manager.h"
-#include "voltage_control.h"
 #include "Socket.h"
 #include <memory>
 
+#ifdef BUILD_SERVER
+
+#include "gpio_manager.h"
+#include "voltage_control.h"
 struct Context {
     
     Context()
@@ -16,6 +18,10 @@ struct Context {
     HighVoltageControl hv_control;
 };
 
+#endif
+
+
+
 enum class CommandCode : uint16_t {
     NOpt = 0,
     EnableHighVoltage,
@@ -26,54 +32,63 @@ enum class CommandCode : uint16_t {
 
 class Command {
 public:
-    Command(const std::string& cmd_name)
-        : name_(cmd_name)
+    Command(const std::string& cmd_name, CommandCode code)
+        : name_(cmd_name), code_(code)
     {}
 
     virtual void write(Socket& socket) = 0;
     virtual void read(Socket& socket) = 0;
-    virtual int16_t execute(Context& context) = 0;
-
+    
+    CommandCode code() const { return code_; }
     const std::string& name() const { return name_; }
+
+#ifdef BUILD_SERVER
+    virtual int16_t execute(Context& context) = 0;
+#endif
 
 private:
     std::string name_;
+    CommandCode code_;
 };
 
 class CommandEnableHighVoltage : public Command {
 public:
     CommandEnableHighVoltage()
-        : Command("EnableHV")
+        : Command("EnableHV", CommandCode::EnableHighVoltage)
     {}
 
     virtual void write(Socket& socket) override {}
     virtual void read(Socket& socket) override {}
 
+#ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
         std::cout << "Enabling high voltage.\n";
         return 0;
     }
+#endif
 };
 
 class CommandDisableHighVoltage : public Command {
 public:
     CommandDisableHighVoltage()
-        : Command("DisableHV")
+        : Command("DisableHV", CommandCode::DisableHighVoltage)
     {}
 
     virtual void write(Socket& socket) override {}
     virtual void read(Socket& socket) override {}
 
+#ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
         std::cout << "Disabling high voltage.\n";
         return 0;
     }
+#endif
 };
 
 class CommandSetHighVoltage : public Command {
 public:
     CommandSetHighVoltage()
-        : Command("SetHV"), voltage_(0)
+        : Command("SetHV", CommandCode::SetHighVoltage), voltage_(0)
     {}
 
     void set_voltage(float v) { voltage_ = v; }
@@ -86,10 +101,12 @@ public:
         socket.read<float>(voltage_);
     }
 
+#ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
         std::cout << "Setting high voltage to " << voltage_ << " mV\n";
         return 0;
     }
+#endif
 
 private:
     float voltage_;
@@ -98,7 +115,7 @@ private:
 class CommandSetLowVoltage : public Command {
 public:
     CommandSetLowVoltage()
-        : Command("SetLV"), voltage_(0)
+        : Command("SetLV", CommandCode::SetLowVoltage), voltage_(0)
     {}
 
     void set_voltage(float v) { voltage_ = v; }
@@ -111,10 +128,12 @@ public:
         socket.read<float>(voltage_);
     }
 
+#ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
         std::cout << "Setting low voltage to " << voltage_ << " mV\n";
         return 0;
     }
+#endif
 
 private:
     float voltage_;
@@ -134,98 +153,3 @@ std::unique_ptr<Command> create_command(uint16_t command_code) {
 
 #undef CommandCase
 }
-
-class ServerListener {
-public:
-    ServerListener(Context* context)
-        : context_(context)
-    {
-        server_.open(7777);
-    }
-
-    void listen() {
-        while (true) {
-            std::cout << "Waiting to listen to client...\n";
-
-            Socket client;
-            client.accept(server_);
-
-            std::cout << "Accepted client\n";
-
-            uint16_t command_code = 0;
-            client.read<uint16_t>(command_code);
-
-            int16_t return_code = 0;
-            std::unique_ptr<Command> command = create_command(command_code);
-            if (command) {
-                command->read(client);
-
-                try { 
-                    return_code = command->execute(*context_);
-                } catch(const std::runtime_error& e) {
-                    std::cerr << "Error in " << command->name() << ": " << e.what() << "\n";
-                    return_code = -1;
-                }
-            }  
-
-            client.write<int16_t>(return_code);
-        }
-    }
-
-private:
-    Socket server_;
-    Context* context_;
-};
-
-// /*
-// * Sending:
-// * Read 16 bit number which is size of data transferred
-// * First 16 bit number is command code
-// * Remaining data is command data
-// *
-// * Recieving:
-// * First 16 bit number is size of data
-// * Then return code
-// * Then remaining values
-// */
-// void execute(CommandCode code, Context& context) {
-//     switch (code) {
-//         case EnableHighVoltage:
-//             try {
-//                 context.chip.set_line("hv_enable", 27, 1);
-//             } catch (const std::runtime_error& e) {
-//                 std::cerr << "Error in command EnableHighVoltage: " << e.what() << "\n";
-//             }
-//             break;
-//         case DisableHighVoltage:
-//             try {
-//                 context.chip.set_line("hv_enable", 27, 0);
-//             } catch (const std::runtime_error& e) {
-//                 std::cerr << "Error in command DisableHighVoltage: " << e.what() << "\n";
-//             }
-//             break;
-//         case SetHighVoltage:
-//             try {
-//             } catch (const std::runtime_error& e) {
-//             }
-//     }
-// }
-// 
-// 
-// class CommandEnableHighVoltage {
-// public:
-// 
-//     CommandEnableHighVoltage() {}
-// 
-//     void send() {}
-// 
-//     void execute(Context& context) {
-//         try {
-//             context.chip.set_line("hv_enable", 27, 1);
-//         } catch (const std::runtime_error& e) {
-//             std::cerr << "Error in command EnableHighVoltage: " << e.what() << "\n";
-//         }
-//     }
-// 
-// private:
-// };

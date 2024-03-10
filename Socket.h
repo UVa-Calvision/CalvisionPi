@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <cstdlib>
 #include <cstring>
 #include <array>
@@ -44,6 +45,23 @@ public:
             throw std::runtime_error("Error on binding");
 
         listen(socket_fd_, 5);
+    }
+
+    void connect(const std::string& hostname, int port) {
+        socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+        if (!good())
+            throw std::runtime_error("Error opening client socket");
+        
+        struct hostent* hostentry = gethostbyname(hostname.c_str());
+        if (!hostentry)
+            throw std::runtime_error("Error finding hostname " + hostname);
+
+        address_.sin_family = AF_INET;
+        address_.sin_port = htons(port);
+        std::memcpy((void*) &address_.sin_addr.s_addr, (void*) hostentry->h_addr, hostentry->h_length);
+
+        if (::connect(socket_fd_, (struct sockaddr*) &address_, sizeof(address_)) < 0)
+            throw std::runtime_error("Error on connecting");
     }
 
     bool good() const {
@@ -91,9 +109,17 @@ protected:
 
     virtual void read_impl(uint8_t* buffer, size_t N) override {
         std::memset((void*) buffer, 0, N * sizeof(uint8_t));
-        size_t n = ::recv(socket_fd_, buffer, N, 0);
-        if (n < 0)
-            throw std::runtime_error("Error reading from socket");
+
+        size_t total = 0;
+        while (total < N) {
+            size_t n = ::recv(socket_fd_, &buffer[total], N - total, 0);
+            if (n < 0)
+                throw std::runtime_error("Error reading from socket");
+            else if (n == 0)
+                throw std::runtime_error("Disconnect while reading socket");
+
+            total += n;
+        }
     }
 
 private:
