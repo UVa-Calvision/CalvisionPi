@@ -4,6 +4,7 @@ std::unique_ptr<Command> create_command(uint16_t command_code) {
 #define CommandCase(ENUM) case static_cast<uint16_t>(CommandCode::ENUM): return std::make_unique<Command##ENUM>();
 
     switch (command_code) {
+        CommandCase(Quit)
         CommandCase(EnableHighVoltage)
         CommandCase(DisableHighVoltage)
         CommandCase(SetHighVoltage)
