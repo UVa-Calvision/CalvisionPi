@@ -27,6 +27,7 @@ struct Context {
 
 enum class CommandCode : uint16_t {
     NOpt = 0,
+    Quit,
     EnableHighVoltage,
     DisableHighVoltage,
     SetHighVoltage,
@@ -60,6 +61,24 @@ public:
     static const std::string& name() { static std::string n = #ENUM; return n; } \
     virtual CommandCode get_code() override { return Command##ENUM::code; } \
     virtual const std::string& get_name() override { return Command##ENUM::name(); }
+
+class CommandQuit : public Command {
+public:
+    CommandQuit()
+    {}
+
+    virtual void write(Socket& socket) override {}
+    virtual void read(Socket& socket) override {}
+
+    ClassFields(Quit);
+    static size_t size() { return 0; }
+
+#ifdef BUILD_SERVER
+    virtual ErrorCode execute(Context& context) override {
+        return ErrorCode::Success;
+    }
+#endif
+};
 
 class CommandEnableHighVoltage : public Command {
 public:
@@ -153,17 +172,4 @@ private:
 
 #undef ClassFields
 
-inline
-std::unique_ptr<Command> create_command(uint16_t command_code) {
-#define CommandCase(ENUM) case static_cast<uint16_t>(CommandCode::ENUM): return std::make_unique<Command##ENUM>();
-
-    switch (command_code) {
-        CommandCase(EnableHighVoltage)
-        CommandCase(DisableHighVoltage)
-        CommandCase(SetHighVoltage)
-        CommandCase(SetLowVoltage)
-        default: return nullptr;
-    }
-
-#undef CommandCase
-}
+std::unique_ptr<Command> create_command(uint16_t command_code);

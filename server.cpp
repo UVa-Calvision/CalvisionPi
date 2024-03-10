@@ -17,48 +17,47 @@ public:
 
             std::cout << "Accepted client\n";
 
-            while (read_command(client));
-        }
-    }
+            while (true) {
+                uint16_t command_code = 0;
+                try {
+                    client.read<uint16_t>(command_code);
+                } catch(const std::runtime_error& e) {
+                    std::cerr << "[ERROR] Reading command code: " << e.what() << "\n";
+                    break;
+                }
 
-    bool read_command(Socket& client) {
-        uint16_t command_code = 0;
-        try {
-            client.read<uint16_t>(command_code);
-        } catch(const std::runtime_error& e) {
-            std::cerr << "[ERROR] Reading command code: " << e.what() << "\n";
-            return false;
-        }
+                ErrorCode return_code = ErrorCode::Success;
+                std::unique_ptr<Command> command = create_command(command_code);
+                if (command) {
+                    try {
+                        command->read(client);
+                    } catch(const std::runtime_error& e) {
+                        std::cerr << "[ERROR] failed to read " << command->get_name() << ": " << e.what() << "\n";
+                        return_code = ErrorCode::PoorlyStructuredCommand;
+                    }
 
-        ErrorCode return_code = ErrorCode::Success;
-        std::unique_ptr<Command> command = create_command(command_code);
-        if (command) {
-            try {
-                command->read(client);
-            } catch(const std::runtime_error& e) {
-                std::cerr << "[ERROR] failed to read " << command->get_name() << ": " << e.what() << "\n";
-                return_code = ErrorCode::PoorlyStructuredCommand;
+                    try { 
+                        return_code = command->execute(*context_);
+                    } catch(const std::runtime_error& e) {
+                        std::cerr << "[ERROR] executing " << command->get_name() << ": " << e.what() << "\n";
+                        return_code = ErrorCode::UnspecifiedFailure;
+                    }
+                } else {
+                    std::cerr << "[ERROR] Unrecognized command code: " << command_code << "\n";
+                    return_code = ErrorCode::InvalidCommand;
+                }
+
+                try {
+                    client.write<uint16_t>(static_cast<uint16_t>(return_code));       
+                } catch (const std::runtime_error& e) {
+                    std::cerr << "[ERROR] Writing return code: " << e.what() << "\n";
+                    break;
+                }
+
+                if (command_code == static_cast<uint16_t>(CommandCode::Quit))
+                    return;
             }
-
-            try { 
-                return_code = command->execute(*context_);
-            } catch(const std::runtime_error& e) {
-                std::cerr << "[ERROR] executing " << command->get_name() << ": " << e.what() << "\n";
-                return_code = ErrorCode::UnspecifiedFailure;
-            }
-        } else {
-            std::cerr << "[ERROR] Unrecognized command code: " << command_code << "\n";
-            return_code = ErrorCode::InvalidCommand;
         }
-
-        try {
-            client.write<uint16_t>(static_cast<uint16_t>(return_code));       
-        } catch (const std::runtime_error& e) {
-            std::cerr << "[ERROR] Writing return code: " << e.what() << "\n";
-            return false;
-        }
-
-        return true;
     }
 
 private:

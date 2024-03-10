@@ -39,6 +39,7 @@ public:
     mcp4725(uint8_t bus_id, uint8_t dev_id);
 
     void set_int(uint16_t value);
+    void set_voltage(float voltage);
 
     void set_voltage_min(float v_min);
     void set_voltage_max(float v_max);

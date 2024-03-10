@@ -28,7 +28,7 @@ void FileHandle::close() {
 }
 
 void FileHandle::write_impl(const uint8_t* buffer, size_t N) {
-    size_t n_written = ::write(fd_, buffer, N);
+    int n_written = ::write(fd_, buffer, N);
     if (n_written != N)
         throw std::runtime_error(fmt::format("Attempted to write {:d} bytes but actually wrote {:d} bytes", N, n_written));
 }
@@ -56,6 +56,10 @@ void mcp4725::set_int(uint16_t value) {
     buffer[1] = ((value & 0b1111'1111'0000) >> 4);
     buffer[2] = ((value & 0b0000'0000'0000) << 4);
     write_buffer(buffer);
+}
+
+void mcp4725::set_voltage(float voltage) {
+    set_int(voltage_to_dac(voltage));
 }
 
 void mcp4725::set_voltage_min(float v_min) {
