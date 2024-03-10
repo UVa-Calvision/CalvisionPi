@@ -29,7 +29,7 @@ void send_command(Socket& server, Command& command) {
             case static_cast<uint16_t>(ErrorCode::InvalidCommand):
                 std::cerr << "[ERROR] Return Code: Invalid command\n";
                 break;
-            case static_cast<uint16_t>(ErrorCode::PoorlyStructureCommand):
+            case static_cast<uint16_t>(ErrorCode::PoorlyStructuredCommand):
                 std::cerr << "[ERROR] Return Code: Server couldn't read command\n";
                 break;
             case static_cast<uint16_t>(ErrorCode::ResourceUnavailable):
@@ -88,6 +88,7 @@ void run_commands(std::istream& input, Socket& socket) {
         std::unique_ptr<Command> command = nullptr;
 
         if (false) {
+        ElseIfName(Quit)();
         ElseIfName(EnableHighVoltage)();
         ElseIfName(DisableHighVoltage)();
         ElseIfName(SetHighVoltage)(std::stof(tokens[1]));
