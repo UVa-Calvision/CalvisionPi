@@ -34,33 +34,33 @@ enum class CommandCode : uint16_t {
 
 class Command {
 public:
-    Command(const std::string& cmd_name, CommandCode code)
-        : name_(cmd_name), code_(code)
-    {}
-
     virtual void write(Socket& socket) = 0;
     virtual void read(Socket& socket) = 0;
     
-    CommandCode code() const { return code_; }
-    const std::string& name() const { return name_; }
+    virtual CommandCode get_code() = 0;
+    virtual const std::string& get_name() = 0;
 
 #ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) = 0;
 #endif
-
-private:
-    std::string name_;
-    CommandCode code_;
 };
+
+#define ClassFields(ENUM) \
+    const static CommandCode code = CommandCode::ENUM; \
+    static const std::string& name() { static std::string n = #ENUM; return n; } \
+    virtual CommandCode get_code() override { return Command##ENUM::code; } \
+    virtual const std::string& get_name() override { return Command##ENUM::name(); }
 
 class CommandEnableHighVoltage : public Command {
 public:
     CommandEnableHighVoltage()
-        : Command("EnableHV", CommandCode::EnableHighVoltage)
     {}
 
     virtual void write(Socket& socket) override {}
     virtual void read(Socket& socket) override {}
+
+    ClassFields(EnableHighVoltage);
+    static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
@@ -73,11 +73,13 @@ public:
 class CommandDisableHighVoltage : public Command {
 public:
     CommandDisableHighVoltage()
-        : Command("DisableHV", CommandCode::DisableHighVoltage)
     {}
 
     virtual void write(Socket& socket) override {}
     virtual void read(Socket& socket) override {}
+
+    ClassFields(DisableHighVoltage)
+    static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
@@ -90,7 +92,7 @@ public:
 class CommandSetHighVoltage : public Command {
 public:
     CommandSetHighVoltage()
-        : Command("SetHV", CommandCode::SetHighVoltage), voltage_(0)
+        : voltage_(0)
     {}
 
     void set_voltage(float v) { voltage_ = v; }
@@ -100,10 +102,11 @@ public:
     }
 
     virtual void read(Socket& socket) override {
-        std::cout << "Reading voltage...\n";
         socket.read<float>(voltage_);
-        std::cout << "Read voltage " << voltage_ << "\n";
     }
+
+    ClassFields(SetHighVoltage)
+    static size_t size() { return 1; }
 
 #ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
@@ -119,20 +122,21 @@ private:
 class CommandSetLowVoltage : public Command {
 public:
     CommandSetLowVoltage()
-        : Command("SetLV", CommandCode::SetLowVoltage), voltage_(0)
+        : voltage_(0)
     {}
 
     void set_voltage(float v) { voltage_ = v; }
 
     virtual void write(Socket& socket) override {
-        std::cout << "Writing voltage: " << voltage_ << "\n";
         socket.write<float>(voltage_);
-        std::cout << "Wrote voltage.\n";
     }
 
     virtual void read(Socket& socket) override {
         socket.read<float>(voltage_);
     }
+
+    ClassFields(SetLowVoltage)
+    static size_t size() { return 1; }
 
 #ifdef BUILD_SERVER
     virtual int16_t execute(Context& context) {
@@ -144,6 +148,8 @@ public:
 private:
     float voltage_;
 };
+
+#undef ClassFields
 
 inline
 std::unique_ptr<Command> create_command(uint16_t command_code) {
