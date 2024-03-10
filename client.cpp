@@ -59,7 +59,7 @@ void run_commands(std::istream& input, Socket& socket) {
             std::cout << "Expected " << Command##ENUM::size() << " arguments for " << Command##ENUM::name() << "\n"; \
             break; \
         } \
-        command = std::make_unique<Command##ENUM>();
+        command = std::make_unique<Command##ENUM>
 
     std::string line;
 
@@ -71,12 +71,10 @@ void run_commands(std::istream& input, Socket& socket) {
         std::unique_ptr<Command> command = nullptr;
 
         if (false) {
-        ElseIfName(EnableHighVoltage)
-        ElseIfName(DisableHighVoltage)
-        ElseIfName(SetHighVoltage)
-            ((CommandSetHighVoltage*) command.get())->set_voltage(std::stof(tokens[1]));
-        ElseIfName(SetLowVoltage)
-            ((CommandSetLowVoltage*) command.get())->set_voltage(std::stof(tokens[1]));
+        ElseIfName(EnableHighVoltage)();
+        ElseIfName(DisableHighVoltage)();
+        ElseIfName(SetHighVoltage)(std::stof(tokens[1]));
+        ElseIfName(SetLowVoltage)(std::stof(tokens[1]));
         }
 
         if (!command) {
@@ -95,7 +93,7 @@ void run_commands(std::istream& input, Socket& socket) {
 
 /*
  * Raspberry pi local address:
- * 172.27.137.24:7777
+ * 172.27.137.34:7777
  */
 int main(int argc, char** argv) {
 

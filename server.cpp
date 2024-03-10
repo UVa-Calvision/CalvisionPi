@@ -3,12 +3,86 @@
 #include "Command.h"
 #include "Server.h"
 
-int main(void) {
+class ServerListener {
+public:
+    ServerListener(int port, Context* context)
+        : context_(context)
+    {
+        server_.open(port);
+    }
 
-    Context context;
+    void listen() {
+        while (true) {
+            std::cout << "Waiting to listen to client...\n";
 
-    ServerListener server(&context);
-    server.listen();
+            Socket client;
+            client.accept(server_);
+
+            std::cout << "Accepted client\n";
+
+            while (read_command(client));
+        }
+    }
+
+    bool read_command(Socket& client) {
+        uint16_t command_code = 0;
+        try {
+            client.read<uint16_t>(command_code);
+        } catch(const std::runtime_error& e) {
+            std::cerr << "[ERROR] Reading command code: " << e.what() << "\n";
+            return false;
+        }
+
+        int16_t return_code = 0;
+        std::unique_ptr<Command> command = create_command(command_code);
+        if (command) {
+            command->read(client);
+
+            try { 
+                return_code = command->execute(*context_);
+            } catch(const std::runtime_error& e) {
+                std::cerr << "[ERROR] executing " << command->name() << ": " << e.what() << "\n";
+                return_code = -1;
+            }
+        } else {
+            std::cerr << "[ERROR] Unreognized command code: " << command_code << "\n";
+        }
+
+        try {
+            client.write<int16_t>(return_code);       
+        } catch (const std::runtime_error& e) {
+            std::cerr << "[ERROR] Writing return code: " << e.what() << "\n";
+            return false;
+        }
+
+        return true;
+    }
+
+private:
+    Socket server_;
+    Context* context_;
+};
+
+int main(int argc, char** argv) {
+
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " port\n";
+        return 1;
+    }
+
+    int port = atoi(argv[1]);
+
+    try {
+        Context context;
+
+        ServerListener server(port, &context);
+        server.listen();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "[FATAL ERROR]: " << e.what() << "\n";
+        return 1;
+    }
+
+    return 0;
 
 //     // Enable GPIO
 //     const unsigned int hv_enable_offset = 27;   // GPIO27 on the board

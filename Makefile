@@ -1,9 +1,9 @@
 
-server: server.cpp Command.h binary_io.h gpio_manager.h Server.h Socket.h voltage_control.h
-	g++ -o server server.cpp -lfmt -lgpiod
+server: server.cpp Command.h Command.cpp binary_io.h GpioManager.h GpioManager.cpp Socket.h Socket.cpp VoltageControl.h
+	g++ -o server -DBUILD_SERVER server.cpp Command.cpp GpioManager.cpp Socket.cpp VoltageControl.cpp -lfmt -lgpiod
 
-client: client.cpp Command.h Socket.h binary_io.h
-	g++ -o client client.cpp
+client: client.cpp Command.h Socket.h Socket.cpp binary_io.h
+	g++ -o client client.cpp Socket.cpp 
 
 clean:
 	rm -rf client server

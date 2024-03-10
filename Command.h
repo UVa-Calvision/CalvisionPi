@@ -63,10 +63,7 @@ public:
     static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) {
-        std::cout << "Enabling high voltage.\n";
-        return 0;
-    }
+    virtual int16_t execute(Context& context) override;
 #endif
 };
 
@@ -82,10 +79,7 @@ public:
     static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) {
-        std::cout << "Disabling high voltage.\n";
-        return 0;
-    }
+    virtual int16_t execute(Context& context) override;
 #endif
 };
 
@@ -95,7 +89,9 @@ public:
         : voltage_(0)
     {}
 
-    void set_voltage(float v) { voltage_ = v; }
+    CommandSetHighVoltage(float voltage)
+        : voltage_(voltage)
+    {}
 
     virtual void write(Socket& socket) override {
         socket.write(voltage_);
@@ -109,10 +105,7 @@ public:
     static size_t size() { return 1; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) {
-        std::cout << "Setting high voltage to " << voltage_ << " mV\n";
-        return 0;
-    }
+    virtual int16_t execute(Context& context) override;
 #endif
 
 private:
@@ -125,7 +118,9 @@ public:
         : voltage_(0)
     {}
 
-    void set_voltage(float v) { voltage_ = v; }
+    CommandSetLowVoltage(float voltage)
+        : voltage_(voltage)
+    {}
 
     virtual void write(Socket& socket) override {
         socket.write<float>(voltage_);
@@ -139,10 +134,7 @@ public:
     static size_t size() { return 1; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) {
-        std::cout << "Setting low voltage to " << voltage_ << " mV\n";
-        return 0;
-    }
+    virtual int16_t execute(Context& context) override;
 #endif
 
 private:
