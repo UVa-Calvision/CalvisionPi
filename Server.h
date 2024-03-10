@@ -19,25 +19,30 @@ public:
 
             std::cout << "Accepted client\n";
 
-            std::cout << "Reading command code...\n";
-            uint16_t command_code = 0;
-            client.read<uint16_t>(command_code);
-            std::cout << "Command code read: " << command_code << "\n";
-
-            int16_t return_code = 0;
-            std::unique_ptr<Command> command = create_command(command_code);
-            if (command) {
-                command->read(client);
-
-                try { 
-                    return_code = command->execute(*context_);
+            while (true) {
+                uint16_t command_code = 0;
+                try {
+                    client.read<uint16_t>(command_code);
                 } catch(const std::runtime_error& e) {
-                    std::cerr << "Error in " << command->name() << ": " << e.what() << "\n";
-                    return_code = -1;
+                    std::cerr << "Error reading command code: " << e.what() << "\n";
+                    break;
                 }
-            }  
 
-            client.write<int16_t>(return_code);
+                int16_t return_code = 0;
+                std::unique_ptr<Command> command = create_command(command_code);
+                if (command) {
+                    command->read(client);
+
+                    try { 
+                        return_code = command->execute(*context_);
+                    } catch(const std::runtime_error& e) {
+                        std::cerr << "Error in " << command->name() << ": " << e.what() << "\n";
+                        return_code = -1;
+                    }
+                }  
+
+                client.write<int16_t>(return_code);
+            }
         }
     }
 

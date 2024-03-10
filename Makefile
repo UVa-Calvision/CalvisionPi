@@ -5,3 +5,5 @@ server: server.cpp Command.h binary_io.h gpio_manager.h Server.h Socket.h voltag
 client: client.cpp Command.h Socket.h binary_io.h
 	g++ -o client client.cpp
 
+clean:
+	rm -rf client server
