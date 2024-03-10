@@ -14,7 +14,7 @@
 
 #include "binary_io.h"
 
-class FileHandle {
+class FileHandle : public BinaryWriter {
 public:
     FileHandle(const std::string& name, const std::string& filename, int mode);
     ~FileHandle();
@@ -23,15 +23,10 @@ public:
     void check_valid() const;
     void close();
 
-    template <size_t N>
-    void write(const std::array<uint8_t, N>& data) const {
-        size_t n_written = ::write(fd_, data.data(), N);
-        if (n_written != N) {
-            throw std::runtime_error(fmt::format("Attempted to write {:d} bytes but actually wrote {:d} bytes", N, n_written));
-        }
-    }
-
 protected:
+
+    void write_impl(const uint8_t* buffer, size_t N) override;
+
     int fd_;
     std::string name_;
 };
@@ -43,7 +38,7 @@ class mcp4725 : private FileHandle {
 public:
     mcp4725(uint8_t bus_id, uint8_t dev_id);
 
-    void set_int(uint16_t value) const;
+    void set_int(uint16_t value);
 
     void set_voltage_min(float v_min);
     void set_voltage_max(float v_max);
@@ -52,6 +47,8 @@ public:
 
     float dac_to_voltage(uint16_t value) const;
     uint16_t voltage_to_dac(float voltage) const;
+
+    bool voltage_in_range(float voltage) const;
 
 protected:
     float v_min_, v_max_;

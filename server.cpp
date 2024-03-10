@@ -1,7 +1,4 @@
-#define BUILD_SERVER
-
 #include "Command.h"
-#include "Server.h"
 
 class ServerListener {
 public:
@@ -33,23 +30,29 @@ public:
             return false;
         }
 
-        int16_t return_code = 0;
+        ErrorCode return_code = ErrorCode::Success;
         std::unique_ptr<Command> command = create_command(command_code);
         if (command) {
-            command->read(client);
+            try {
+                command->read(client);
+            } catch(const std::runtime_error& e) {
+                std::cerr << "[ERROR] failed to read " << command->get_name() << ": " << e.what() << "\n";
+                return_code = ErrorCode::PoorlyStructuredCommand;
+            }
 
             try { 
                 return_code = command->execute(*context_);
             } catch(const std::runtime_error& e) {
-                std::cerr << "[ERROR] executing " << command->name() << ": " << e.what() << "\n";
-                return_code = -1;
+                std::cerr << "[ERROR] executing " << command->get_name() << ": " << e.what() << "\n";
+                return_code = ErrorCode::UnspecifiedFailure;
             }
         } else {
-            std::cerr << "[ERROR] Unreognized command code: " << command_code << "\n";
+            std::cerr << "[ERROR] Unrecognized command code: " << command_code << "\n";
+            return_code = ErrorCode::InvalidCommand;
         }
 
         try {
-            client.write<int16_t>(return_code);       
+            client.write<uint16_t>(static_cast<uint16_t>(return_code));       
         } catch (const std::runtime_error& e) {
             std::cerr << "[ERROR] Writing return code: " << e.what() << "\n";
             return false;

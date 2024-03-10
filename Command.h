@@ -5,8 +5,9 @@
 
 #ifdef BUILD_SERVER
 
-#include "gpio_manager.h"
-#include "voltage_control.h"
+#include "GpioManager.h"
+#include "VoltageControl.h"
+
 struct Context {
     
     Context()
@@ -32,6 +33,15 @@ enum class CommandCode : uint16_t {
     SetLowVoltage,
 };
 
+enum class ErrorCode : uint16_t {
+    Success = 0,
+    InvalidCommand,
+    PoorlyStructuredCommand,
+    ResourceUnavailable,
+    VoltageOutOfRange,
+    UnspecifiedFailure,
+};
+
 class Command {
 public:
     virtual void write(Socket& socket) = 0;
@@ -41,7 +51,7 @@ public:
     virtual const std::string& get_name() = 0;
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) = 0;
+    virtual ErrorCode execute(Context& context) = 0;
 #endif
 };
 
@@ -63,7 +73,7 @@ public:
     static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) override;
+    virtual ErrorCode execute(Context& context) override;
 #endif
 };
 
@@ -79,7 +89,7 @@ public:
     static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) override;
+    virtual ErrorCode execute(Context& context) override;
 #endif
 };
 
@@ -105,7 +115,7 @@ public:
     static size_t size() { return 1; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) override;
+    virtual ErrorCode execute(Context& context) override;
 #endif
 
 private:
@@ -134,7 +144,7 @@ public:
     static size_t size() { return 1; }
 
 #ifdef BUILD_SERVER
-    virtual int16_t execute(Context& context) override;
+    virtual ErrorCode execute(Context& context) override;
 #endif
 
 private:

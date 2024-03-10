@@ -1,5 +1,3 @@
-#undef BUILD_SERVER
-
 #include "Command.h"
 #include <iostream>
 #include <vector>
@@ -24,12 +22,31 @@ void send_command(Socket& server, Command& command) {
         uint16_t return_code = 0;
         server.read<uint16_t>(return_code);
 
-        std::cout << "Command exited with return code: " << return_code << "\n";
+        switch (return_code) {
+            case static_cast<uint16_t>(ErrorCode::Success):
+                std::cout << "Command success\n";
+                break;
+            case static_cast<uint16_t>(ErrorCode::InvalidCommand):
+                std::cerr << "[ERROR] Return Code: Invalid command\n";
+                break;
+            case static_cast<uint16_t>(ErrorCode::PoorlyStructureCommand):
+                std::cerr << "[ERROR] Return Code: Server couldn't read command\n";
+                break;
+            case static_cast<uint16_t>(ErrorCode::ResourceUnavailable):
+                std::cerr << "[ERROR] Return Code: Resource is unavailble\n";
+                break;
+            case static_cast<uint16_t>(ErrorCode::VoltageOutOfRange):
+                std::cerr << "[ERROR] Return Code: Voltage is out of range\n";
+                break;
+            default:
+                std::cerr << "[ERROR] Return Code: Unspecified Failure\n";
+                break;
+        }
 
-        if (return_code != 0) {
-            std::cerr << "Non-zero return code: " << return_code << "\n";
+        if (return_code != static_cast<uint16_t>(ErrorCode::Success)) {
             wait_for_key();
         }
+
     } catch (const std::runtime_error& e) {
         std::cerr << "[ERROR] While sending command: " << e.what() << "\n";
         wait_for_key();

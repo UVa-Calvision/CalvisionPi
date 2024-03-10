@@ -10,7 +10,7 @@ FileHandle::~FileHandle() {
     close();
 }
 
-void FileHandle::good() const {
+bool FileHandle::good() const {
     return fd_ != -1;
 }
 
@@ -27,6 +27,12 @@ void FileHandle::close() {
     }
 }
 
+void FileHandle::write_impl(const uint8_t* buffer, size_t N) {
+    size_t n_written = ::write(fd_, buffer, N);
+    if (n_written != N)
+        throw std::runtime_error(fmt::format("Attempted to write {:d} bytes but actually wrote {:d} bytes", N, n_written));
+}
+
 float linear_interpolate(float x, float x_min, float x_max, float y_min, float y_max) {
     float slope = (y_max - y_min) / (x_max - x_min);
     return slope * (x - x_min) + y_min;
@@ -34,7 +40,7 @@ float linear_interpolate(float x, float x_min, float x_max, float y_min, float y
 
 
 mcp4725::mcp4725(uint8_t bus_id, uint8_t dev_id)
-    : fd_handle(fmt::format("mcp7425@{0:#x}:{1:#x}", bus_id, dev_id),
+    : FileHandle(fmt::format("mcp7425@{0:#x}:{1:#x}", bus_id, dev_id),
                 fmt::format("/dev/i2c-{0:d}", bus_id),
                 O_RDWR),
       v_min_(0), v_max_(0)
@@ -44,7 +50,7 @@ mcp4725::mcp4725(uint8_t bus_id, uint8_t dev_id)
     }
 }
 
-void mcp4725::set_int(uint16_t value) const {
+void mcp4725::set_int(uint16_t value) {
     std::array<uint8_t, 3> buffer;
     buffer[0] = 0b0100'0000;    // write to DAC command
     buffer[1] = ((value & 0b1111'1111'0000) >> 4);
@@ -74,4 +80,8 @@ float mcp4725::dac_to_voltage(uint16_t value) const {
 
 uint16_t mcp4725::voltage_to_dac(float voltage) const {
     return (uint16_t) linear_interpolate(voltage, v_min_, v_max_, (float) dac_min_, (float) dac_max_);
+}
+
+bool mcp4725::voltage_in_range(float voltage) const {
+    return voltage < std::max(v_min_, v_max_) && voltage > std::min(v_min_, v_max_);
 }
