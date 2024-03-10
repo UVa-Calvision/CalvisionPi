@@ -4,8 +4,10 @@
 #include <iostream>
 
 
-void send_command(Socket& server, Command& command) {
-    
+void send_command(Command& command) {
+    Socket server;
+    server.connect("172.27.137.34", 7777);
+
     std::cout << "Sending command " << command.name() << "\n";
 
     server.write<uint16_t>(static_cast<uint16_t>(command.code()));
@@ -26,22 +28,20 @@ void send_command(Socket& server, Command& command) {
 int main(void) {
 
     try {
-        Socket server;
-        server.connect("172.27.137.34", 7777);
 
         CommandEnableHighVoltage enable_hv;
-        send_command(server, enable_hv);
+        send_command(enable_hv);
 
         CommandDisableHighVoltage disable_hv;
-        send_command(server, disable_hv);
+        send_command(disable_hv);
 
         CommandSetHighVoltage set_hv;
         set_hv.set_voltage(10000.0);
-        send_command(server, set_hv);
+        send_command(set_hv);
 
         CommandSetLowVoltage set_lv;
         set_lv.set_voltage(500.0);
-        send_command(server, set_lv);
+        send_command(set_lv);
 
     } catch (const std::runtime_error& e) {
         std::cerr << "Error encountered: " << e.what() << "\n";

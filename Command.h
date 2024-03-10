@@ -121,7 +121,9 @@ public:
     void set_voltage(float v) { voltage_ = v; }
 
     virtual void write(Socket& socket) override {
+        std::cout << "Writing voltage: " << voltage_ << "\n";
         socket.write<float>(voltage_);
+        std::cout << "Wrote voltage.\n";
     }
 
     virtual void read(Socket& socket) override {
