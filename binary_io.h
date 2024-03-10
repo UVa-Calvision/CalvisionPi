@@ -47,7 +47,7 @@ public:
 
     template <typename T>
     void read(T* buffer, size_t N) {
-        this->read_impl((uint8_t*) buffer, N);
+        this->read_impl((uint8_t*) buffer, sizeof(T) * N);
     }
 
     template <typename T>

@@ -10,6 +10,8 @@
 #include <array>
 #include <unistd.h>
 
+#include <iostream>
+
 #include "binary_io.h"
 
 class Socket : public BinaryWriter, public BinaryReader {
@@ -74,25 +76,6 @@ public:
         if (!good())
             throw std::runtime_error("Error opening client socket");
     }
-
-//     template <size_t N>
-//     void recieve(std::array<uint8_t, N>& buffer) const {
-//         std::memset((void*) buffer.data(), 0, N * sizeof(uint8_t));
-//         size_t n = ::recv(socket_fd_, buffer.data(), N, 0);
-//         if (n < 0)
-//             throw std::runtime_error("Error reading from socket");
-//     }
-// 
-//     template <size_t N>
-//     void send(const std::array<uint8_t, N>& buffer) const {
-//         send(buffer.data(), N);
-//     }
-// 
-//     void send(const uint8_t* buffer, size_t length) const {
-//         size_t n = ::send(socket_fd_, buffer, length, 0);
-//         if (n < 0)
-//             throw std::runtime_error("Error sending from socket");
-//     }
 
     void close() {
         if (good()) {
