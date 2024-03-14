@@ -67,7 +67,7 @@ public:
     {
         // Default calibration
         v_min_ = 0;
-        v_max_ = 0;
+        v_max_ = 4.8e3;
         dac_min_ = 0;
         dac_max_ = 0xfff;
     }

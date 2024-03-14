@@ -87,5 +87,5 @@ uint16_t mcp4725::voltage_to_dac(float voltage) const {
 }
 
 bool mcp4725::voltage_in_range(float voltage) const {
-    return voltage < std::max(v_min_, v_max_) && voltage > std::min(v_min_, v_max_);
+    return voltage <= std::max(v_min_, v_max_) && voltage >= std::min(v_min_, v_max_);
 }
