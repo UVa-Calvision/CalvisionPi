@@ -27,8 +27,8 @@ protected:
 
     void write_impl(const uint8_t* buffer, size_t N) override;
 
-    int fd_;
     std::string name_;
+    int fd_;
 };
 
 float linear_interpolate(float x, float x_min, float x_max, float y_min, float y_max);

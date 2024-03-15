@@ -29,7 +29,7 @@ void FileHandle::close() {
 
 void FileHandle::write_impl(const uint8_t* buffer, size_t N) {
     int n_written = ::write(fd_, buffer, N);
-    if (n_written != N)
+    if (n_written != static_cast<int>(N))
         throw std::runtime_error(fmt::format("Attempted to write {:d} bytes but actually wrote {:d} bytes", N, n_written));
 }
 

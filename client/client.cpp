@@ -55,8 +55,8 @@ void send_command(Socket& server, Command& command) {
 
 std::vector<std::string> tokenize(const std::string& line) {
     std::vector<std::string> tokens;
-    int last = 0;
-    for (int i = 0; i < line.length(); i++) {
+    size_t last = 0;
+    for (size_t i = 0; i < line.length(); i++) {
         if (line[i] == ' ') {
             tokens.push_back(line.substr(last, i - last));
             last = i+1;

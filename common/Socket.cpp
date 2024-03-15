@@ -72,9 +72,14 @@ void Socket::close() {
 }
 
 void Socket::write_impl(const uint8_t* buffer, size_t N) {
-    size_t n = ::send(socket_fd_, buffer, N, 0);
-    if (n < 0)
-        throw std::runtime_error("Error sending from socket");
+    size_t total = 0;
+    while (total < N) {
+        size_t n = ::send(socket_fd_, &buffer[total], N - total, 0);
+        if (n == 0)
+            throw std::runtime_error("Disconnect while writing socket");
+
+        total += n;
+    }
 }
 
 void Socket::read_impl(uint8_t* buffer, size_t N) {
@@ -83,9 +88,7 @@ void Socket::read_impl(uint8_t* buffer, size_t N) {
     size_t total = 0;
     while (total < N) {
         size_t n = ::recv(socket_fd_, &buffer[total], N - total, 0);
-        if (n < 0)
-            throw std::runtime_error("Error reading from socket");
-        else if (n == 0)
+        if (n == 0)
             throw std::runtime_error("Disconnect while reading socket");
 
         total += n;

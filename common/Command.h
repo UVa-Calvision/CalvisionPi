@@ -67,14 +67,14 @@ public:
     CommandQuit()
     {}
 
-    virtual void write(Socket& socket) override {}
-    virtual void read(Socket& socket) override {}
+    virtual void write(Socket&) override {}
+    virtual void read(Socket&) override {}
 
     ClassFields(Quit);
     static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
-    virtual ErrorCode execute(Context& context) override {
+    virtual ErrorCode execute(Context&) override {
         return ErrorCode::Success;
     }
 #endif
@@ -85,14 +85,14 @@ public:
     CommandEnableHighVoltage()
     {}
 
-    virtual void write(Socket& socket) override {}
-    virtual void read(Socket& socket) override {}
+    virtual void write(Socket&) override {}
+    virtual void read(Socket&) override {}
 
     ClassFields(EnableHighVoltage);
     static size_t size() { return 0; }
 
 #ifdef BUILD_SERVER
-    virtual ErrorCode execute(Context& context) override;
+    virtual ErrorCode execute(Context&) override;
 #endif
 };
 
@@ -101,8 +101,8 @@ public:
     CommandDisableHighVoltage()
     {}
 
-    virtual void write(Socket& socket) override {}
-    virtual void read(Socket& socket) override {}
+    virtual void write(Socket&) override {}
+    virtual void read(Socket&) override {}
 
     ClassFields(DisableHighVoltage)
     static size_t size() { return 0; }
