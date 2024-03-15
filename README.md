@@ -9,12 +9,12 @@ sending it TCP messages over a socket.
 
 ### Client-side
 No dependencies. Normal git-clone and cmake build steps
-```
-$ git clone https://github.com/hhollenb/CalvisionPi
-$ cd CalvisionPi
-$ mkdir build && cd build
-$ cmake -DBUILD_SERVER=OFF ..
-$ cmake --build . --target client
+```bash
+git clone https://github.com/hhollenb/CalvisionPi
+cd CalvisionPi
+mkdir build && cd build
+cmake -DBUILD_SERVER=OFF ..
+cmake --build . --target client
 ```
 
 ### Server-side (Raspberry Pi)
@@ -23,16 +23,16 @@ Dependencies (can just be installed via package manager):
  - [gpiod](https://github.com/brgl/libgpiod)
 
 Normal git-clone and cmake build steps
-```
-$ git clone https://github.com/hhollenb/CalvisionPi
-$ cd CalvisionPi
-$ mkdir build && cd build
-$ cmake -DBUILD_SERVER=ON ..
-$ cmake --build . --target server
+```bash
+git clone https://github.com/hhollenb/CalvisionPi
+cd CalvisionPi
+mkdir build && cd build
+cmake -DBUILD_SERVER=ON ..
+cmake --build . --target server
 ```
 Client can also be built with the same config if desired (but likely not used)
-```
-$ cmake --build . --target client
+```bash
+cmake --build . --target client
 ```
 
 
@@ -41,8 +41,8 @@ $ cmake --build . --target client
 ### Client-side
 
 The client requires the IP address and port of the server to be specified.
-```
-$ ./client/client ip-address port [command file]
+```bash
+./client/client ip-address port [command file]
 ```
 The command file is optional. If no command file is specified, then input is read from stdin and interpreted
 the same way. If an error value is returned from the server, then script execution is paused and waits for
@@ -59,8 +59,8 @@ Pararameters should be separated by a single space, and can be any integer or fl
 ### Server-side
 
 The server just requires an open port to be specified.
-```
-$ ./server/server port
+```bash
+./server/server port
 ```
 Runs until either a fatal error occurs or a quit message is sent. Only accepts one client at a time, and
 accepts commands until the connection is closed by the client. After the connection is closed, it waits
@@ -73,7 +73,7 @@ There following are steps for adding a new command called `MyCommand`:
  1. Add a new entry `MyCommand` to the `CommandCode` enum in `common/Commands.h`. The identifier is
     the same as the command string used in parsing command files.
  2. Create a class called `CommandMyCommand` in `Command.h` with the following outline:
-```
+```cpp
 class CommandMyCommand : public Command {
 public:
     CommandMyCommand()
@@ -96,11 +96,11 @@ private:
 Size should equal the number of parameters of the command. The `write` and `read` functions are responsible
 for writing and reading the parameters in the same order to/from the socket.
  3. In `Command.cpp`, add the following line to the switch in `create_command`:
-```
+```cpp
 CommandCase(MyCommand)
 ```
 Inside the `#ifdef BUILD_SERVER` block, also add the implementation of `CommandMyCommand::execute`:
-```
+```cpp
 #ifdef BUILD_SERVER
 ...
 ErrorCode CommandMyCommand::execute(Context& context) {
@@ -110,7 +110,7 @@ ErrorCode CommandMyCommand::execute(Context& context) {
 #endif
 ```
  4. In `client.cpp` add the parsing statement to `run_commands`:
-```
+```cpp
 ElseIfName(MyCommand)(/*std::stof(tokens[1]), std::stoi(tokens[2]), etc. */);
 ```
 
