@@ -3,11 +3,13 @@
 #include "CppUtils/networking/Socket.h"
 #include <memory>
 #include <iostream>
+#include "SipmRegister.h"
 
 #ifdef BUILD_SERVER
 
 #include "GpioManager.h"
 #include "VoltageControl.h"
+#include "SiPMSupply.h"
 
 struct Context {
     
@@ -20,6 +22,7 @@ struct Context {
     GpioChip chip;
     LowVoltageControl lv_control;
     HighVoltageControl hv_control;
+    SipmI2cControl sipm_control;
 };
 
 #endif
@@ -33,6 +36,7 @@ enum class CommandCode : uint16_t {
     DisableHighVoltage,
     SetHighVoltage,
     SetLowVoltage,
+    SipmVoltageControl,
 };
 
 enum class ErrorCode : uint16_t {
@@ -169,6 +173,48 @@ public:
 
 private:
     float voltage_;
+};
+
+class CommandSipmVoltageControl : public Command {
+public:
+    CommandSipmVoltageControl()
+        : reg_(std::nullopt), raw_value_(0)
+    {}
+
+    CommandSipmVoltageControl(SipmControlRegister reg, uint32_t raw_value)
+        : reg_(reg), raw_value_(raw_value)
+    {}
+
+    virtual void write(Socket& socket) override {
+        if (!reg_)
+            throw std::runtime_error("Invalid sipm control register");
+
+        const uint8_t reg = *SipmRegisterTable.get<SipmRegisterValue::Register>(*reg_);
+        socket.write<uint8_t>(reg);
+        socket.write<uint32_t>(raw_value_);
+    }
+
+    virtual void read(Socket& socket) override {
+        uint8_t reg = 0;
+        socket.read<uint8_t>(reg);
+        if (auto opt_reg = SipmRegisterTable.lookup<SipmRegisterValue::Register>(reg)) {
+            reg_ = *opt_reg;
+        } else {
+            throw std::runtime_error("Invalid sipm control register: " + std::to_string(reg));
+        }
+        socket.read<uint32_t>(raw_value_);
+    }
+
+    ClassFields(SipmVoltageControl)
+    static size_t size() { return 1; }
+
+#ifdef BUILD_SERVER
+    virtual ErrorCode execute(Context& context) override;
+#endif
+
+private:
+    std::optional<SipmControlRegister> reg_;
+    uint32_t raw_value_;
 };
 
 #undef ClassFields

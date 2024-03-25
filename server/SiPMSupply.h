@@ -10,10 +10,6 @@
 template <typename ControlImpl>
 class SipmControl {
 public:
-    SipmControl(ControlImpl* impl)
-        : impl_(impl)
-    {}
-
     virtual ~SipmControl() {}
 
     template <SipmControlRegister reg, typename T>
@@ -21,7 +17,7 @@ public:
         static_assert(SipmRegisterTable.get<SipmRegisterValue::Can_Write>().get<reg>());
         static_assert(valid_register_type<T, reg>());
 
-        impl_->template i2c_write<T>(SipmRegisterTable.get<SipmRegisterValue::Register>().get<reg>(), value);
+        impl().template i2c_write<T>(SipmRegisterTable.get<SipmRegisterValue::Register>().get<reg>(), value);
     }
 
     template <SipmControlRegister reg, typename T>
@@ -29,12 +25,21 @@ public:
         static_assert(SipmRegisterTable.get<SipmRegisterValue::Can_Read>().get<reg>());
         static_assert(valid_register_type<T, reg>());
 
-        return impl_->template i2c_read<T>(SipmRegisterTable.get<SipmRegisterValue::Register>().get<reg>());
+        return impl().template i2c_read<T>(SipmRegisterTable.get<SipmRegisterValue::Register>().get<reg>());
     }
 
-private:
+protected:
+    SipmControl()
+    {}
 
-    ControlImpl* impl_;
+private:
+    ControlImpl& impl() {
+        return *static_cast<ControlImpl*>(this);
+    }
+
+    const ControlImpl& impl() const {
+        return *static_cast<const ControlImpl*>(this);
+    }
 };
 
 
@@ -45,6 +50,9 @@ class SipmI2cControl : public SipmControl<SipmI2cControl>, private I2cReaderWrit
 public:
     SipmI2cControl();
     virtual ~SipmI2cControl();
+
+protected:
+    friend class SipmControl<SipmI2cControl>;
 
     template <typename T>
     void i2c_write(uint8_t address, T value) {
@@ -94,12 +102,16 @@ private:
     };
 
     template <typename T>
-    constexpr static DataFormat type_format() {
-        if (std::is_same_v<T, int32_t>) return DataFormat::Integer;
-        if (std::is_same_v<T, uint32_t>) return DataFormat::UnsignedInteger;
-        if (std::is_same_v<T, float>) return DataFormat::FloatingPoint;
-        static_assert(false);
-    }
+    constexpr static DataFormat type_format() = delete;
+
+    template <typename T, std::enable_if_t<std::is_same_v<T,int32_t>, bool> = true>
+    constexpr static DataFormat type_format() { return DataFormat::Integer; }
+
+    template <typename T, std::enable_if_t<std::is_same_v<T,uint32_t>, bool> = true>
+    constexpr static DataFormat type_format() { return DataFormat::UnsignedInteger; }
+
+    template <typename T, std::enable_if_t<std::is_same_v<T,float>, bool> = true>
+    constexpr static DataFormat type_format() { return DataFormat::FloatingPoint; }
 };
 
 // UART control

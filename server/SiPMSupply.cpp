@@ -1,48 +1,7 @@
 #include "SiPMSupply.h"
 
-// constexpr bool SipmControlRegister::register_can_read(Register reg) {
-//     switch (reg) {
-//         case EMERGENCY_STOP:
-//         case IZERO:
-//         case STORE_ON_FLASH:
-//             return false;
-//         default:
-//             return true;
-//     }
-// }
-// 
-// constexpr bool SipmControlRegister::register_can_write(Register reg) {
-//     return reg == STORE_ON_FLASH || static_cast<uint8_t>(reg) < 229;
-// }
-// 
-// constexpr SipmControlRegister::RegisterType SipmControlRegister::register_type(Register reg) {
-//     switch (reg) {
-//         case HV_ENABLE:
-//         case LUT_ENABLE:
-//         case ENABLE_PI:
-//         case EMERGENCY_STOP:
-//         case IZERO:
-//         case COMPLIANCE_V:
-//         case COMPLIANCE_I:
-//         case STORE_ON_FLASH:
-//             return BOOL;
-//         case MODE:
-//         case LUT_ADDRESS:
-//         case LUT_LENGTH:
-//         case I2C_BASE_ADDRESS:
-//         case CURRENT_RANGE:
-//         case PIN_STATUS:
-//         case PRODUCT_CODE:
-//         case SERIAL_NUMBER:
-//             return INT;
-//         default:
-//             return FLOAT;
-//     }
-// }
-
-
 SipmI2cControl::SipmI2cControl()
-    : SipmControl(this),
+    : SipmControl(),
     I2cReaderWriter(I2C_BUS_ID, I2C_DEV_ID, OpenMode::ReadWrite)
 {}
 

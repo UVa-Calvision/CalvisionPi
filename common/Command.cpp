@@ -9,6 +9,7 @@ std::unique_ptr<Command> create_command(uint16_t command_code) {
         CommandCase(DisableHighVoltage)
         CommandCase(SetHighVoltage)
         CommandCase(SetLowVoltage)
+        CommandCase(SipmVoltageControl)
         default: return nullptr;
     }
 
@@ -70,6 +71,18 @@ ErrorCode CommandSetLowVoltage::execute(Context& context) {
         std::cerr << "[ERROR] While setting low voltage: " << e.what() << "\n";
         return ErrorCode::ResourceUnavailable;
     }
+
+    return ErrorCode::Success;
+}
+
+ErrorCode CommandSipmVoltageControl::execute(Context&) {
+    if (!reg_) {
+        std::cerr << "Invalid sipm control register\n";
+        return ErrorCode::InvalidCommand;
+    }
+
+    std::cout << "Executing sipm command " << *SipmRegisterTable.get<SipmRegisterValue::Name>(*reg_)
+        << " with raw value: " << raw_value_ << "\n";
 
     return ErrorCode::Success;
 }
