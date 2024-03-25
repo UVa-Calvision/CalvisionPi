@@ -1,11 +1,13 @@
 #include "Command.h"
 
+#include <iostream>
+
 class ServerListener {
 public:
     ServerListener(int port, Context* context)
         : context_(context)
     {
-        server_.open(port);
+        server_.listen(port);
     }
 
     void listen() {

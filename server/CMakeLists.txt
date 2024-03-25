@@ -15,5 +15,6 @@ target_include_directories(server PUBLIC
     "${CalvisionPi_SOURCE_DIR}/server"
 )
 
-target_link_libraries(server PRIVATE fmt gpiod)
+target_link_directories(server PRIVATE "${CMAKE_PREFIX_PATH}/lib")
+target_link_libraries(server PRIVATE fmt gpiod CppUtils::CppUtilsIO CppUtils::CppUtilsNetworking)
 target_compile_features(server PUBLIC cxx_std_14)

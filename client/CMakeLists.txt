@@ -13,4 +13,5 @@ target_include_directories(client PUBLIC
     "${CalvisionPi_SOURCE_DIR}/client"
 )
 
+target_link_libraries(client PRIVATE CppUtils::CppUtilsIO CppUtils::CppUtilsNetworking)
 target_compile_features(client PUBLIC cxx_std_14)

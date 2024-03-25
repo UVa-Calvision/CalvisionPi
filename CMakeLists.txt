@@ -7,8 +7,15 @@ project(CalvisionPi VERSION 1.0.0 LANGUAGES CXX)
 option(BUILD_SERVER "Build server executable (requires fmt and gpiod)" OFF)
 
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+# Import CppUtils libraries
+include(GNUInstallDirs)
+include("${CMAKE_PREFIX_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake/CppUtils/CppUtilsCUtilsTargets.cmake")
+include("${CMAKE_PREFIX_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake/CppUtils/CppUtilsIOTargets.cmake")
+include("${CMAKE_PREFIX_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake/CppUtils/CppUtilsNetworkingTargets.cmake")
+
 
 # Glob common headers
 file(GLOB COMMON_HEADER_LIST CONFIGURE_DEPENDS "${CalvisionPi_SOURCE_DIR}/common/*.h")

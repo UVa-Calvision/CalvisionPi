@@ -1,37 +1,9 @@
 #include "VoltageControl.h"
 
-FileHandle::FileHandle(const std::string& name, const std::string& filename, int mode)
-    : name_(name), fd_(open(filename.c_str(), mode))
-{
-    check_valid();
-}
-
-FileHandle::~FileHandle() {
-    close();
-}
-
-bool FileHandle::good() const {
-    return fd_ != -1;
-}
-
-void FileHandle::check_valid() const {
-    if (!good()) {
-        throw std::runtime_error(fmt::format("Failed to open {0:s}", name_));
-    }
-}
-
-void FileHandle::close() {
-    if (good()) {
-        ::close(fd_);
-        fd_ = -1;
-    }
-}
-
-void FileHandle::write_impl(const uint8_t* buffer, size_t N) {
-    int n_written = ::write(fd_, buffer, N);
-    if (n_written != static_cast<int>(N))
-        throw std::runtime_error(fmt::format("Attempted to write {:d} bytes but actually wrote {:d} bytes", N, n_written));
-}
+#include <fmt/format.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
+#include <array>
 
 float linear_interpolate(float x, float x_min, float x_max, float y_min, float y_max) {
     float slope = (y_max - y_min) / (x_max - x_min);
@@ -40,14 +12,10 @@ float linear_interpolate(float x, float x_min, float x_max, float y_min, float y
 
 
 mcp4725::mcp4725(uint8_t bus_id, uint8_t dev_id)
-    : FileHandle(fmt::format("mcp7425@{0:#x}:{1:#x}", bus_id, dev_id),
-                fmt::format("/dev/i2c-{0:d}", bus_id),
-                O_RDWR),
-      v_min_(0), v_max_(0)
+    : I2cReaderWriter(bus_id, dev_id, OpenMode::ReadWrite),
+      v_min_(0), v_max_(0),
+      dac_min_(0), dac_max_(0)
 {
-    if (ioctl(fd_, I2C_SLAVE, dev_id) == -1) {
-        throw std::runtime_error(fmt::format("Couldn't access i2c {}", name_));
-    }
 }
 
 void mcp4725::set_int(uint16_t value) {
@@ -62,22 +30,6 @@ void mcp4725::set_voltage(float voltage) {
     set_int(voltage_to_dac(voltage));
 }
 
-void mcp4725::set_voltage_min(float v_min) {
-    v_min_ = v_min;
-}
-
-void mcp4725::set_voltage_max(float v_max) {
-    v_max_ = v_max;
-}
-
-void mcp4725::set_dac_min(uint16_t dac_min) {
-    dac_min_ = dac_min;
-}
-
-void mcp4725::set_dac_max(int16_t dac_max) {
-    dac_max_ = dac_max;
-}
-
 float mcp4725::dac_to_voltage(uint16_t value) const {
     return linear_interpolate((float) value, (float) dac_min_, (float) dac_max_, v_min_, v_max_);
 }
@@ -89,3 +41,28 @@ uint16_t mcp4725::voltage_to_dac(float voltage) const {
 bool mcp4725::voltage_in_range(float voltage) const {
     return voltage <= std::max(v_min_, v_max_) && voltage >= std::min(v_min_, v_max_);
 }
+
+constexpr static uint8_t I2C_BUS_ID = 1;
+constexpr static uint8_t LOW_VOLTAGE_DEV_ID = 0x64;
+constexpr static uint8_t HIGH_VOLTAGE_DEV_ID = 0x65;
+
+LowVoltageControl::LowVoltageControl()
+    : mcp4725(I2C_BUS_ID, LOW_VOLTAGE_DEV_ID)
+{
+    // Default calibration
+    v_min_ = 0;
+    v_max_ = 4.8e3;
+    dac_min_ = 0;
+    dac_max_ = 0xfff;
+}
+
+HighVoltageControl::HighVoltageControl()
+    : mcp4725(I2C_BUS_ID, HIGH_VOLTAGE_DEV_ID)
+{
+    // Default calibration
+    v_min_ = 59.03e3;
+    v_max_ = 4.459e3;
+    dac_min_ = 0x1c2;
+    dac_max_ = 0x7d0;
+}
+
