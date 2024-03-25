@@ -93,6 +93,7 @@ void run_commands(std::istream& input, Socket& socket) {
         ElseIfName(DisableHighVoltage)();
         ElseIfName(SetHighVoltage)(std::stof(tokens[1]));
         ElseIfName(SetLowVoltage)(std::stof(tokens[1]));
+        ElseIfName(SipmVoltageControl)(tokens[1], tokens[2]);
         }
 
         if (!command) {

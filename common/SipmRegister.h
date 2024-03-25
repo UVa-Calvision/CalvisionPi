@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CppUtils/c_util/Enum.h"
+#include <string_view>
 
 enum class SipmControlRegister {
     HV_ENABLE,
@@ -110,7 +111,7 @@ using SipmRegisterValueIndexer = EnumIndexer<SipmRegisterValue,
     SipmRegisterValue::Can_Write
 >;
 
-constexpr static auto SipmRegisterTable = EnumTable<SipmRegisterIndexer, SipmRegisterValueIndexer, const char*, uint8_t, SipmRegisterType, bool, bool>::make_table(
+constexpr static auto SipmRegisterTable = EnumTable<SipmRegisterIndexer, SipmRegisterValueIndexer, std::string_view, uint8_t, SipmRegisterType, bool, bool>::make_table(
     std::tuple(SipmControlRegister::HV_ENABLE,                  "HV_ENABLE",                  0, SipmRegisterType::Bool ,  true,  true),
     std::tuple(SipmControlRegister::MODE,                       "MODE",                       1, SipmRegisterType::Int  ,  true,  true),
     std::tuple(SipmControlRegister::V_TARGET_WRITE,             "V_TARGET_WRITE",             2, SipmRegisterType::Float,  true,  true),

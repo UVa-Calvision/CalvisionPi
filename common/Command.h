@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CppUtils/networking/Socket.h"
+#include "CppUtils/c_util/CUtil.h"
 #include <memory>
 #include <iostream>
 #include "SipmRegister.h"
@@ -184,6 +185,28 @@ public:
     CommandSipmVoltageControl(SipmControlRegister reg, uint32_t raw_value)
         : reg_(reg), raw_value_(raw_value)
     {}
+
+    CommandSipmVoltageControl(const std::string_view& reg_name, const std::string& raw)
+    {
+        if (auto reg = SipmRegisterTable.lookup<SipmRegisterValue::Name>(reg_name)) {
+            reg_ = *reg;
+            switch (*SipmRegisterTable.get<SipmRegisterValue::Type>(*reg_)) {
+                case SipmRegisterType::Bool:
+                case SipmRegisterType::Int: {
+                        int32_t temp = std::stoi(raw);
+                        copy_raw_buffer(&raw_value_, &temp, 1);
+                        break;
+                    }
+                case SipmRegisterType::Float: {
+                        float temp = std::stof(raw);
+                        copy_raw_buffer(&raw_value_, &temp, 1);
+                        break;
+                    }
+            }
+        } else {
+            throw std::runtime_error("Invalid sipm control register name: " + std::string(reg_name));
+        }
+    }
 
     virtual void write(Socket& socket) override {
         if (!reg_)
