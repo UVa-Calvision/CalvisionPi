@@ -20,32 +20,17 @@ public:
             std::cout << "Accepted client\n";
 
             while (true) {
-                uint16_t command_code = 0;
-                try {
-                    client.read<uint16_t>(command_code);
-                } catch(const std::runtime_error& e) {
-                    std::cerr << "[ERROR] Reading command code: " << e.what() << "\n";
-                    break;
-                }
-
                 ErrorCode return_code = ErrorCode::Success;
-                std::unique_ptr<Command> command = create_command(command_code);
+                std::unique_ptr<BaseCommand> command = read_command(server_);
                 if (command) {
-                    try {
-                        command->read(client);
-                    } catch(const std::runtime_error& e) {
-                        std::cerr << "[ERROR] failed to read " << command->get_name() << ": " << e.what() << "\n";
-                        return_code = ErrorCode::PoorlyStructuredCommand;
-                    }
-
                     try { 
                         return_code = command->execute(*context_);
                     } catch(const std::runtime_error& e) {
-                        std::cerr << "[ERROR] executing " << command->get_name() << ": " << e.what() << "\n";
+                        std::cerr << "[ERROR] executing: " << e.what() << "\n";
                         return_code = ErrorCode::UnspecifiedFailure;
                     }
                 } else {
-                    std::cerr << "[ERROR] Unrecognized command code: " << command_code << "\n";
+                    std::cerr << "[ERROR] Unrecognized command\n";
                     return_code = ErrorCode::InvalidCommand;
                 }
 
@@ -56,7 +41,7 @@ public:
                     break;
                 }
 
-                if (command_code == static_cast<uint16_t>(CommandCode::Quit))
+                if (command && command->code() == CommandCode::Quit)
                     return;
             }
         }

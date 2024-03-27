@@ -12,6 +12,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Import CppUtils libraries
 include(GNUInstallDirs)
+include("${CMAKE_PREFIX_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake/CppUtils/CppUtilsPreProcTargets.cmake")
 include("${CMAKE_PREFIX_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake/CppUtils/CppUtilsCUtilsTargets.cmake")
 include("${CMAKE_PREFIX_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake/CppUtils/CppUtilsIOTargets.cmake")
 include("${CMAKE_PREFIX_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake/CppUtils/CppUtilsNetworkingTargets.cmake")

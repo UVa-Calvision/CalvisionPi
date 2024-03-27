@@ -11,11 +11,12 @@ void wait_for_key() {
     std::cin >> buffer;
 }
 
-void send_command(Socket& server, Command& command) {
-    std::cout << "Sending command " << command.get_name() << "\n";
+void send_command(Socket& server, BaseCommand& command) {
+    std::cout << "Sending command: ";
+    command.dump_command(std::cout);
 
     try {
-        server.write<uint16_t>(static_cast<uint16_t>(command.get_code()));
+        // server.write<uint16_t>(static_cast<uint16_t>(command.get_code()));
 
         command.write(server);
 
@@ -70,14 +71,6 @@ std::vector<std::string> tokenize(const std::string& line) {
 
 void run_commands(std::istream& input, Socket& socket) {
 
-#define ElseIfName(ENUM) \
-    } else if (tokens[0] == Command##ENUM::name()) { \
-        if (tokens.size() != Command##ENUM::size() + 1) { \
-            std::cout << "Expected " << Command##ENUM::size() << " arguments for " << Command##ENUM::name() << "\n"; \
-            break; \
-        } \
-        command = std::make_unique<Command##ENUM>
-
     std::string line;
 
     while (std::getline(input, line)) {
@@ -85,16 +78,7 @@ void run_commands(std::istream& input, Socket& socket) {
 
         if (tokens.empty()) continue;
 
-        std::unique_ptr<Command> command = nullptr;
-
-        if (false) {
-        ElseIfName(Quit)();
-        ElseIfName(EnableHighVoltage)();
-        ElseIfName(DisableHighVoltage)();
-        ElseIfName(SetHighVoltage)(std::stof(tokens[1]));
-        ElseIfName(SetLowVoltage)(std::stof(tokens[1]));
-        ElseIfName(SipmVoltageControl)(tokens[1], tokens[2]);
-        }
+        std::unique_ptr<BaseCommand> command = make_command(tokens);
 
         if (!command) {
             std::cout << "Invalid command: " << line << "\nSkipping...\n";
