@@ -2,7 +2,7 @@
 #include "CommandNOpt.h"
 #include "CommandQuit.h"
 #include "CommandVoltageControl.h"
-#include "CommandSipmControl.h"
+#include "CommandSipmControlWrite.h"
 
 
 

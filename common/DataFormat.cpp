@@ -21,3 +21,5 @@ struct dump_dataformat_functor {
 void dump_dataformat(std::ostream& out, DataFormat f, raw_type x) {
     DataFormatIndexer::dispatch<dump_dataformat_functor>(f, out, x);
 }
+
+template <> raw_type make_raw<bool>(bool t) { return make_raw(static_cast<uint32_t>(t)); }

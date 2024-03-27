@@ -101,9 +101,6 @@ constexpr static auto SipmRegisterTable = EnumTable<SipmControlRegisterIndexer, 
 
 template <typename T, SipmControlRegister reg>
 constexpr static bool valid_register_type() {
-    if (sizeof(T) != 4)
-        return false;
-
     switch (SipmRegisterTable.get<SipmRegisterValue::Type>().get<reg>()) {
         case DataFormat::Bool:
             return std::is_same_v<T,bool>;

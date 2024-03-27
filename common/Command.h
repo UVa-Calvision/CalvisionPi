@@ -38,7 +38,7 @@ INDEXED_ENUM(CommandCode,
     NOpt,
     Quit,
     VoltageControl,
-    SipmVoltageControl
+    SipmControlWrite
 );
 
 INDEXED_ENUM(CommandCodeValues, Name);
@@ -47,7 +47,7 @@ constexpr static auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCo
     std::tuple(CommandCode::NOpt, "NOpt"),
     std::tuple(CommandCode::Quit, "Quit"),
     std::tuple(CommandCode::VoltageControl, "VoltageControl"),
-    std::tuple(CommandCode::SipmVoltageControl, "SipmVoltageControl")
+    std::tuple(CommandCode::SipmControlWrite, "SipmControlWrite")
 );
 
 
@@ -59,6 +59,8 @@ enum class ErrorCode : uint16_t {
     ResourceUnavailable,
     VoltageOutOfRange,
     UnspecifiedFailure,
+    CannotWrite,
+    CannotRead,
 };
 
 
@@ -179,6 +181,27 @@ private:
         return *static_cast<const T*>(this);
     }
 };
+
+#ifdef BUILD_SERVER
+#define CommandClass(NAME) \
+    class Command##NAME : public Command<Command##NAME, NAME##Command> { \
+    public: \
+        constexpr static CommandCode code = CommandCode::NAME; \
+        constexpr static const CommandEnumTable<NAME##CommandIndexer>& command_table() { return NAME##Table; } \
+        Command##NAME(std::vector<raw_type> raw) : Command<Command##NAME, NAME##Command>(code, std::move(raw)) {} \
+        virtual ErrorCode execute(Context&, NAME##Command) override; \
+    }; \
+    template <> struct CommandMapping<Command##NAME::code> { using type = Command##NAME; };
+#else
+#define CommandClass(NAME) \
+    class Command##NAME : public Command<Command##NAME, NAME##Command> { \
+    public: \
+        constexpr static CommandCode code = CommandCode::NAME; \
+        constexpr static const CommandEnumTable<NAME##CommandIndexer>& command_table() { return NAME##Table; } \
+        Command##NAME(std::vector<raw_type> raw) : Command<Command##NAME, NAME##Command>(code, std::move(raw)) {} \
+    }; \
+    template <> struct CommandMapping<Command##NAME::code> { using type = Command##NAME; };
+#endif
 
 template <CommandCode code>
 struct CommandMapping;
