@@ -120,17 +120,13 @@ struct ReadCodeFunctor<CommandCode::Quit> {
 };
 
 std::unique_ptr<BaseCommand> read_command(Socket& socket) {
-    try {
-        raw_type command_code = 0;
-        socket.read<raw_type>(command_code);
+    raw_type command_code = 0;
+    socket.read<raw_type>(command_code);
 
-        if (auto code = CommandCodeTable.from_index(command_code)) {
-            if (auto command = CommandCodeIndexer::dispatch<ReadCodeFunctor>(*code, socket)) {
-                return std::move(*command);
-            }
+    if (auto code = CommandCodeTable.from_index(command_code)) {
+        if (auto command = CommandCodeIndexer::dispatch<ReadCodeFunctor>(*code, socket)) {
+            return std::move(*command);
         }
-    } catch (const std::runtime_error& e) {
-        std::cerr << "[ERROR] Reading command code: " << e.what() << "\n";
     }
 
     return nullptr;

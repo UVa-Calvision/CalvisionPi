@@ -111,12 +111,13 @@ public:
         if (!action) return;
 
         out << "[" << CommandCodeTable.get<T::code, CommandCodeValues::Name>() << "]: "
-            << " " << T::command_table().template get<CommandValues::Name>(*action);
+            << " " << *T::command_table().template get<CommandValues::Name>(*action);
 
-        for (size_t i = 0; i < raw_data_.size(); i++) {
+        for (size_t i = 1; i < raw_data_.size(); i++) {
             out << " ";
             dump_dataformat(out, data_types(*action)[i], raw_data_[i]);
         }
+        out << "\n";
     }
 
 #ifdef BUILD_SERVER
@@ -127,6 +128,7 @@ public:
         }
         
         dump_command(std::cout);
+        std::cout << "\n";
 
         try {
             return execute(context, *action);

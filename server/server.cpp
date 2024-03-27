@@ -21,8 +21,15 @@ public:
 
             while (true) {
                 ErrorCode return_code = ErrorCode::Success;
-                std::unique_ptr<BaseCommand> command = read_command(server_);
+                std::unique_ptr<BaseCommand> command = nullptr;
+                try {
+                     command = read_command(client);
+                } catch(const std::runtime_error& e) {
+                    break;
+                }
+
                 if (command) {
+                    std::cout << "Have command!\n";
                     try { 
                         return_code = command->execute(*context_);
                     } catch(const std::runtime_error& e) {

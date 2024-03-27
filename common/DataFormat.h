@@ -52,7 +52,9 @@ template <>
 struct format_to_type<DataFormat::Float> {
     using type = float;
     static type read(const std::string& s) { return std::stof(s); }
-    static type convert_raw(raw_type x) { return binary_cast<type>(x); }
+    static type convert_raw(raw_type x) { 
+        std::cout << "convert_raw<float>(" << x << ") = " << binary_cast<type>(x) << "\n";
+        return binary_cast<type>(x); }
 };
 
 template <DataFormat f> using format_to_type_t = typename format_to_type<f>::type;
