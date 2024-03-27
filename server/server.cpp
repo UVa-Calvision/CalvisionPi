@@ -11,7 +11,7 @@ public:
     }
 
     void listen() {
-        while (true) {
+        while (!context_->quit) {
             std::cout << "Waiting to listen to client...\n";
 
             Socket client;
@@ -19,7 +19,7 @@ public:
 
             std::cout << "Accepted client\n";
 
-            while (true) {
+            while (!context_->quit) {
                 ErrorCode return_code = ErrorCode::Success;
                 std::unique_ptr<BaseCommand> command = nullptr;
                 try {
@@ -29,7 +29,6 @@ public:
                 }
 
                 if (command) {
-                    std::cout << "Have command!\n";
                     try { 
                         return_code = command->execute(*context_);
                     } catch(const std::runtime_error& e) {
@@ -47,9 +46,6 @@ public:
                     std::cerr << "[ERROR] Writing return code: " << e.what() << "\n";
                     break;
                 }
-
-                if (command && command->code() == CommandCode::Quit)
-                    return;
             }
         }
     }

@@ -14,6 +14,8 @@ public:
 
     bool voltage_in_range(float voltage) const;
 
+    using I2cReaderWriter::good;
+
 protected:
     float v_min_, v_max_;
     uint16_t dac_min_, dac_max_;

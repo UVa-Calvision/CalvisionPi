@@ -7,6 +7,7 @@
 #include <optional>
 #include <iostream>
 #include <array>
+#include <sstream>
 
 using raw_type = uint32_t;
 
@@ -30,7 +31,11 @@ template <DataFormat f> struct format_to_type;
 template <>
 struct format_to_type<DataFormat::Bool> {
     using type = bool;
-    static type read(const std::string& s) { return static_cast<bool>(std::stoi(s)); }
+    static type read(const std::string& s) {
+        bool b;
+        std::istringstream(s) >> std::boolalpha >> b;
+        return b;
+    }
     static type convert_raw(raw_type x) { return static_cast<bool>(x); }
 
     constexpr static uint8_t SipmCode = 0x02;

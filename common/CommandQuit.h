@@ -25,7 +25,8 @@ public:
     }
 
 #ifdef BUILD_SERVER
-    virtual ErrorCode execute(Context&) override {
+    virtual ErrorCode execute(Context& context) override {
+        context.quit = true;
         return ErrorCode::Success;
     }
 #endif

@@ -1,6 +1,5 @@
 #include "CommandVoltageControl.h"
 
-#ifdef BUILD_SERVER
 ErrorCode CommandVoltageControl::execute(Context& context, VoltageControlCommand action) {
     switch(action) {
         case VoltageControlCommand::HighVoltageEnable: {
@@ -35,4 +34,3 @@ ErrorCode CommandVoltageControl::execute(Context& context, VoltageControlCommand
     }
     return ErrorCode::Success;
 }
-#endif

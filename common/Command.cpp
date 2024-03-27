@@ -3,7 +3,7 @@
 #include "CommandQuit.h"
 #include "CommandVoltageControl.h"
 #include "CommandSipmControlWrite.h"
-
+#include "CommandSipmControlRead.h"
 
 
 template <CommandCode code>

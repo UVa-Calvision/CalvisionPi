@@ -9,25 +9,7 @@
 #include "DataFormat.h"
 
 #ifdef BUILD_SERVER
-
-#include "GpioManager.h"
-#include "VoltageControl.h"
-#include "SiPMSupply.h"
-
-struct Context {
-    
-    Context()
-        : chip("/dev/gpiochip0")
-        , lv_control()
-        , hv_control()
-    {}
-
-    GpioChip chip;
-    LowVoltageControl lv_control;
-    HighVoltageControl hv_control;
-    SipmI2cControl sipm_control;
-};
-
+#include "Context.h"
 #endif
 
 namespace detail {
@@ -38,7 +20,8 @@ INDEXED_ENUM(CommandCode,
     NOpt,
     Quit,
     VoltageControl,
-    SipmControlWrite
+    SipmControlWrite,
+    SipmControlRead
 );
 
 INDEXED_ENUM(CommandCodeValues, Name);
@@ -47,7 +30,8 @@ constexpr static auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCo
     std::tuple(CommandCode::NOpt, "NOpt"),
     std::tuple(CommandCode::Quit, "Quit"),
     std::tuple(CommandCode::VoltageControl, "VoltageControl"),
-    std::tuple(CommandCode::SipmControlWrite, "SipmControlWrite")
+    std::tuple(CommandCode::SipmControlWrite, "SipmControlWrite"),
+    std::tuple(CommandCode::SipmControlRead, "SipmControlRead")
 );
 
 
@@ -115,9 +99,11 @@ public:
         out << "[" << CommandCodeTable.get<T::code, CommandCodeValues::Name>() << "]: "
             << " " << *T::command_table().template get<CommandValues::Name>(*action);
 
-        for (size_t i = 1; i < raw_data_.size(); i++) {
+        const DataFormatTypes& types = data_types(*action);
+
+        for (size_t i = 0; i < types.size(); i++) {
             out << " ";
-            dump_dataformat(out, data_types(*action)[i], raw_data_[i]);
+            dump_dataformat(out, types[i], raw_data_[i+1]);
         }
         out << "\n";
     }
@@ -135,7 +121,7 @@ public:
         try {
             return execute(context, *action);
         } catch(const std::runtime_error& e) {
-            std::cerr << "[ERROR] " << e.what() << "\n";
+            std::cerr << "[ERROR] Execute: " << e.what() << "\n";
             return ErrorCode::ResourceUnavailable;
         }
     }

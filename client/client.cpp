@@ -73,7 +73,7 @@ void run_commands(std::istream& input, Socket& socket) {
 
     std::string line;
 
-    while (std::getline(input, line)) {
+    while (socket.good() && std::getline(input, line)) {
         const std::vector<std::string> tokens = tokenize(line);
 
         if (tokens.empty()) continue;

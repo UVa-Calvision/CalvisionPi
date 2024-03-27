@@ -1,7 +1,5 @@
 #include "CommandSipmControlWrite.h"
 
-#ifdef BUILD_SERVER
-
 INDEXED_ENUM(RegMap, Register);
 
 constexpr static auto CommandToRegTable = EnumTable<SipmControlWriteCommandIndexer, RegMapIndexer, SipmControlRegister>::make_table(
@@ -59,5 +57,3 @@ ErrorCode CommandSipmControlWrite::execute(Context& context, SipmControlWriteCom
 
     return *SipmControlWriteCommandIndexer::dispatch<ControlRegisterFunctor>(reg, context, raw_data_[1]);
 }
-
-#endif
