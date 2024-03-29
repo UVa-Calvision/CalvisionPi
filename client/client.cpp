@@ -4,47 +4,34 @@
 #include <fstream>
 #include <string>
 #include <memory>
+#include <sstream>
 
 void wait_for_key() {
-    std::cout << "Waiting for key+enter...\n";
-    std::string buffer;
-    std::cin >> buffer;
+    std::cout << "Waiting for key...\n";
+    std::cin.get();
 }
 
 void send_command(Socket& server, BaseCommand& command) {
-    std::cout << "Sending command: ";
     command.dump_command(std::cout);
 
     try {
-        // server.write<uint16_t>(static_cast<uint16_t>(command.get_code()));
-
         command.write(server);
 
         uint16_t return_code = 0;
         server.read<uint16_t>(return_code);
+        auto error_code = ErrorCodeTable.from_index(return_code);
 
-        switch (return_code) {
-            case static_cast<uint16_t>(ErrorCode::Success):
-                std::cout << "Command success\n";
-                break;
-            case static_cast<uint16_t>(ErrorCode::InvalidCommand):
-                std::cerr << "[ERROR] Return Code: Invalid command\n";
-                break;
-            case static_cast<uint16_t>(ErrorCode::PoorlyStructuredCommand):
-                std::cerr << "[ERROR] Return Code: Server couldn't read command\n";
-                break;
-            case static_cast<uint16_t>(ErrorCode::ResourceUnavailable):
-                std::cerr << "[ERROR] Return Code: Resource is unavailble\n";
-                break;
-            case static_cast<uint16_t>(ErrorCode::VoltageOutOfRange):
-                std::cerr << "[ERROR] Return Code: Voltage is out of range\n";
-                break;
-            default:
-                std::cerr << "[ERROR] Return Code: Unspecified Failure\n";
-                break;
+        if (!error_code) {
+            std::cerr << "[ERROR] Unrecognized error code: " << return_code << "\n";
+            return;
         }
 
-        if (return_code != static_cast<uint16_t>(ErrorCode::Success)) {
+        if (*error_code == ErrorCode::Success) {
+            std::cout << "Command success\n";
+            command.read_return_value(server);
+            std::cout << "\n";
+        } else {
+            std::cerr << "[ERROR] Return Code: " << *ErrorCodeTable.get<CommandCodeValues::Name>(*error_code) << "\n";
             wait_for_key();
         }
 
@@ -74,6 +61,7 @@ void run_commands(std::istream& input, Socket& socket) {
     std::string line;
 
     while (socket.good() && std::getline(input, line)) {
+
         const std::vector<std::string> tokens = tokenize(line);
 
         if (tokens.empty()) continue;
@@ -82,14 +70,11 @@ void run_commands(std::istream& input, Socket& socket) {
 
         if (!command) {
             std::cout << "Invalid command: " << line << "\nSkipping...\n";
-            std::cout << "Waiting for key+enter...\n";
-            std::cin >> line;
+            wait_for_key();
             continue;
         }
 
         send_command(socket, *command);
-
-        std::cout << "\n";
     }
 }
 
@@ -100,8 +85,9 @@ void run_commands(std::istream& input, Socket& socket) {
  */
 int main(int argc, char** argv) {
 
-    if (argc < 3 || argc > 4) {
+    if (argc < 3 || argc > 5) {
         std::cout << "Usage: " << argv[0] << " address port [command script]\n"
+            << "Usage: " << argv[0] << " address port -c \"Command Text\"\n"
             << "Omitting command script will accept commands from stdin instead.\n";
         return 1;
     }
@@ -117,7 +103,15 @@ int main(int argc, char** argv) {
 
         std::cout << "Connected.\n";
 
-        if (argc == 4) {
+        if (argc == 5) {
+            if (std::string(argv[3]) != "-c") {
+                std::cout << "Unrecognized command tag: " << argv[3] << "\n";
+                return 1;
+            }
+            std::cout << "Reading command line argument: " << argv[4] << "\n";
+            std::stringstream input(argv[4]);
+            run_commands(input, server);
+        } else if (argc == 4) {
             std::cout << "Reading from " << argv[3] << "\n";
             std::ifstream input(argv[3]);
             run_commands(input, server);

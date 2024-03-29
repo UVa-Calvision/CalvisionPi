@@ -20,7 +20,7 @@ public:
             std::cout << "Accepted client\n";
 
             while (!context_->quit) {
-                ErrorCode return_code = ErrorCode::Success;
+                ReturnData return_data(ErrorCode::Success);
                 std::unique_ptr<BaseCommand> command = nullptr;
                 try {
                      command = read_command(client);
@@ -30,18 +30,21 @@ public:
 
                 if (command) {
                     try { 
-                        return_code = command->execute(*context_);
+                        return_data = command->execute(*context_);
                     } catch(const std::runtime_error& e) {
                         std::cerr << "[ERROR] executing: " << e.what() << "\n";
-                        return_code = ErrorCode::UnspecifiedFailure;
+                        return_data = ReturnData(ErrorCode::UnspecifiedFailure);
                     }
                 } else {
                     std::cerr << "[ERROR] Unrecognized command\n";
-                    return_code = ErrorCode::InvalidCommand;
+                    return_data = ReturnData(ErrorCode::InvalidCommand);
                 }
 
                 try {
-                    client.write<uint16_t>(static_cast<uint16_t>(return_code));       
+                    client.write(static_cast<uint16_t>(*ErrorCodeTable.to_index(return_data.error_code)));
+                    if (return_data.return_value) {
+                        client.write<raw_type>(*return_data.return_value);
+                    } 
                 } catch (const std::runtime_error& e) {
                     std::cerr << "[ERROR] Writing return code: " << e.what() << "\n";
                     break;

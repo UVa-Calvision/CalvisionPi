@@ -10,10 +10,10 @@ INDEXED_ENUM(VoltageControlCommand,
     LowVoltageSet
 );
 
-constexpr static auto VoltageControlTable = CommandEnumTable<VoltageControlCommandIndexer>::make_table(
-    std::tuple(VoltageControlCommand::HighVoltageEnable,   "HighVoltageEnable",  DataFormatTypes{DataFormat::Bool}),
-    std::tuple(VoltageControlCommand::HighVoltageSet,      "HighVoltageSet",     DataFormatTypes{DataFormat::Float}),
-    std::tuple(VoltageControlCommand::LowVoltageSet,       "LowVoltageSet",      DataFormatTypes{DataFormat::Float})
+constexpr static auto VoltageControlTable = CommandEnumTable<VoltageControlCommandIndexer, 1>::make_table(
+    std::pair(VoltageControlCommand::HighVoltageEnable,   std::tuple("HighVoltageEnable",  DataFormatTypes<1>{DataFormat::Bool} , std::nullopt)),
+    std::pair(VoltageControlCommand::HighVoltageSet,      std::tuple("HighVoltageSet",     DataFormatTypes<1>{DataFormat::Float}, std::nullopt)),
+    std::pair(VoltageControlCommand::LowVoltageSet,       std::tuple("LowVoltageSet",      DataFormatTypes<1>{DataFormat::Float}, std::nullopt))
 );
 
 CommandClass(VoltageControl);

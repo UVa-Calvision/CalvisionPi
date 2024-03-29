@@ -27,24 +27,49 @@ INDEXED_ENUM(CommandCode,
 INDEXED_ENUM(CommandCodeValues, Name);
 
 constexpr static auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCodeValuesIndexer, std::string_view>::make_table(
-    std::tuple(CommandCode::NOpt, "NOpt"),
-    std::tuple(CommandCode::Quit, "Quit"),
-    std::tuple(CommandCode::VoltageControl, "VoltageControl"),
-    std::tuple(CommandCode::SipmControlWrite, "SipmControlWrite"),
-    std::tuple(CommandCode::SipmControlRead, "SipmControlRead")
+    std::pair(CommandCode::NOpt,               std::tuple("NOpt")),
+    std::pair(CommandCode::Quit,               std::tuple("Quit")),
+    std::pair(CommandCode::VoltageControl,     std::tuple("VoltageControl")),
+    std::pair(CommandCode::SipmControlWrite,   std::tuple("SipmControlWrite")),
+    std::pair(CommandCode::SipmControlRead,    std::tuple("SipmControlRead"))
 );
 
 
 
-enum class ErrorCode : uint16_t {
-    Success = 0,
+INDEXED_ENUM(ErrorCode,
+    Success,
     InvalidCommand,
     PoorlyStructuredCommand,
     ResourceUnavailable,
     VoltageOutOfRange,
     UnspecifiedFailure,
     CannotWrite,
-    CannotRead,
+    CannotRead
+);
+
+constexpr static auto ErrorCodeTable = EnumTable<ErrorCodeIndexer, CommandCodeValuesIndexer, std::string_view>::make_table(
+    std::pair(ErrorCode::Success,                  std::tuple("Success"                   )),
+    std::pair(ErrorCode::InvalidCommand,           std::tuple("Invalid command"           )),
+    std::pair(ErrorCode::PoorlyStructuredCommand,  std::tuple("Poorly structured command" )),
+    std::pair(ErrorCode::ResourceUnavailable,      std::tuple("Resource unavailable"      )),
+    std::pair(ErrorCode::VoltageOutOfRange,        std::tuple("Voltage out of range"      )),
+    std::pair(ErrorCode::UnspecifiedFailure,       std::tuple("Unspecified failure"       )),
+    std::pair(ErrorCode::CannotWrite,              std::tuple("Cannot write to register"  )),
+    std::pair(ErrorCode::CannotRead,               std::tuple("Cannot read from register" ))
+);
+
+struct ReturnData {
+
+    explicit ReturnData(ErrorCode code)
+        : error_code(code), return_value(std::nullopt)
+    {}
+
+    explicit ReturnData(ErrorCode code, raw_type value)
+        : error_code(code), return_value(value)
+    {}
+
+    ErrorCode error_code;
+    std::optional<raw_type> return_value;
 };
 
 
@@ -68,8 +93,10 @@ public:
         return *CommandCodeTable.from_index(raw_enum_);
     }
 
+    virtual void read_return_value(Socket& socket) = 0;
+
 #ifdef BUILD_SERVER
-    virtual ErrorCode execute(Context&) = 0;
+    virtual ReturnData execute(Context&) = 0;
 #endif
 
 protected:
@@ -83,23 +110,26 @@ protected:
 
 INDEXED_ENUM(CommandValues,
     Name,
-    Types
+    ParameterTypes,
+    ReturnType
 );
 
-template <typename Indexer>
-using CommandEnumTable = EnumTable<Indexer, CommandValuesIndexer, std::string_view, DataFormatTypes>;
+template <typename Indexer, size_t N>
+using CommandEnumTable = EnumTable<Indexer, CommandValuesIndexer,
+                                   std::string_view, DataFormatTypes<N>, std::optional<DataFormat> >;
 
 template <typename T, typename EnumType>
 class Command : public BaseCommand {
+    using Self = Command<T,EnumType>;
 public:
     void dump_command(std::ostream& out) const override {
-        auto action = lead_enum();
-        if (!action) return;
+        auto name = command_value<CommandValues::Name>();
+        if (!name) return;
 
         out << "[" << CommandCodeTable.get<T::code, CommandCodeValues::Name>() << "]: "
-            << " " << *T::command_table().template get<CommandValues::Name>(*action);
+            << " " << *name;
 
-        const DataFormatTypes& types = data_types(*action);
+        auto types = *command_value<CommandValues::ParameterTypes>();
 
         for (size_t i = 0; i < types.size(); i++) {
             out << " ";
@@ -108,25 +138,35 @@ public:
         out << "\n";
     }
 
+    virtual void read_return_value(Socket& socket) override {
+        if (auto ret_type = command_value<CommandValues::ReturnType>()) {
+            if (*ret_type) {
+                raw_type raw_value;
+                socket.read<raw_type>(raw_value);
+                dump_dataformat(std::cout, **ret_type, raw_value);
+                // this->handle_return_value(raw_value);
+            } 
+        } 
+    }
+
 #ifdef BUILD_SERVER
-    virtual ErrorCode execute(Context& context) override {
+    virtual ReturnData execute(Context& context) override {
         auto action = lead_enum();
         if (!action) {
-            return ErrorCode::InvalidCommand;
+            return ReturnData(ErrorCode::InvalidCommand);
         }
         
         dump_command(std::cout);
-        std::cout << "\n";
 
         try {
             return execute(context, *action);
         } catch(const std::runtime_error& e) {
             std::cerr << "[ERROR] Execute: " << e.what() << "\n";
-            return ErrorCode::ResourceUnavailable;
+            return ReturnData(ErrorCode::ResourceUnavailable);
         }
     }
 
-    virtual ErrorCode execute(Context&, EnumType) = 0;
+    virtual ReturnData execute(Context&, EnumType) = 0;
 #endif
 
 protected:
@@ -134,13 +174,24 @@ protected:
         : BaseCommand(code, std::move(raw))
     {}
 
-    template <EnumType e>
-    constexpr static DataFormatTypes c_data_types() {
-        return T::command_table().template c_get<e, CommandValues::Types>();
+//    virtual void handle_return_value(raw_type raw_value) {
+//        // Must have return type if this is called!
+//        DataFormat f = **command_value<CommandValues::ReturnType>();
+//        dump_dataformat(std::cout, f, raw_value);
+//    }
+
+    template <CommandValues c>
+    constexpr auto command_value() const {
+        using CommandTableType = std::remove_reference_t<std::invoke_result_t<decltype(&T::command_table)> >;
+        using F = typename CommandTableType::template FieldType<c>;
+        auto action = lead_enum();
+        if (!action) return (const F*) nullptr;
+        return T::command_table().template get<c>(*action);
     }
 
-    constexpr const DataFormatTypes& data_types(EnumType e) const {
-        return *T::command_table().template get<CommandValues::Types>(e);
+    template <EnumType e>
+    constexpr static auto c_data_types() {
+        return T::command_table().template c_get<e, CommandValues::ParameterTypes>();
     }
 
     std::optional<EnumType> lead_enum() const {
@@ -169,25 +220,21 @@ private:
 };
 
 #ifdef BUILD_SERVER
-#define CommandClass(NAME) \
-    class Command##NAME : public Command<Command##NAME, NAME##Command> { \
-    public: \
-        constexpr static CommandCode code = CommandCode::NAME; \
-        constexpr static const CommandEnumTable<NAME##CommandIndexer>& command_table() { return NAME##Table; } \
-        Command##NAME(std::vector<raw_type> raw) : Command<Command##NAME, NAME##Command>(code, std::move(raw)) {} \
-        virtual ErrorCode execute(Context&, NAME##Command) override; \
-    }; \
-    template <> struct CommandMapping<Command##NAME::code> { using type = Command##NAME; };
+#define EXECUTE_SIGNATURE(NAME) virtual ReturnData execute(Context&, NAME##Command) override;
 #else
+#define EXECUTE_SIGNATURE(NAME)
+#endif
+
 #define CommandClass(NAME) \
     class Command##NAME : public Command<Command##NAME, NAME##Command> { \
     public: \
         constexpr static CommandCode code = CommandCode::NAME; \
-        constexpr static const CommandEnumTable<NAME##CommandIndexer>& command_table() { return NAME##Table; } \
+        constexpr static const auto& command_table() { return NAME##Table; } \
         Command##NAME(std::vector<raw_type> raw) : Command<Command##NAME, NAME##Command>(code, std::move(raw)) {} \
+        EXECUTE_SIGNATURE(NAME) \
     }; \
     template <> struct CommandMapping<Command##NAME::code> { using type = Command##NAME; };
-#endif
+
 
 template <CommandCode code>
 struct CommandMapping;

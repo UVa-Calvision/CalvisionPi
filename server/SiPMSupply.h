@@ -14,18 +14,18 @@ public:
 
     template <SipmControlRegister reg, typename T>
     void write_register(T value) {
-        static_assert(SipmRegisterTable.get<SipmRegisterValue::Can_Write>().get<reg>());
+        static_assert(SipmRegisterTable.get<reg, SipmRegisterValue::Can_Write>());
         static_assert(valid_register_type<T, reg>());
 
-        impl().template i2c_write<T>(SipmRegisterTable.get<SipmRegisterValue::Register>().get<reg>(), value);
+        impl().template i2c_write<T>(SipmRegisterTable.get<reg, SipmRegisterValue::Register>(), value);
     }
 
     template <SipmControlRegister reg, typename T>
     T read_register() {
-        static_assert(SipmRegisterTable.get<SipmRegisterValue::Can_Read>().get<reg>());
+        static_assert(SipmRegisterTable.get<reg, SipmRegisterValue::Can_Read>());
         static_assert(valid_register_type<T, reg>());
 
-        return impl().template i2c_read<T>(SipmRegisterTable.get<SipmRegisterValue::Register>().get<reg>());
+        return impl().template i2c_read<T>(SipmRegisterTable.get<reg, SipmRegisterValue::Register>());
     }
 
     virtual bool good() const = 0;

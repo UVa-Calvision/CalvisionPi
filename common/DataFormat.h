@@ -18,7 +18,8 @@ INDEXED_ENUM(DataFormat,
     Float
 );
 
-using DataFormatTypes = std::array<DataFormat, 1>;
+template <size_t N>
+using DataFormatTypes = std::array<DataFormat, N>;
 
 template <typename T> constexpr DataFormat type_to_format() = delete;
 template <> constexpr DataFormat type_to_format<bool>() { return DataFormat::Bool; }

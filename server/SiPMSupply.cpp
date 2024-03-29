@@ -14,6 +14,7 @@ SipmI2cControl::~SipmI2cControl()
 #include <fcntl.h>
 
 #include "CppUtils/c_util/CUtil.h"
+#include "CppUtils/io/IOUtils.h"
 
 #include <unistd.h>
 
@@ -89,14 +90,13 @@ SipmUartControl::~SipmUartControl() {
 
 std::string SipmUartControl::read_response() {
     static std::array<char, 256> buffer;
-    zero_buffer(buffer.data(), buffer.size());
 
-    size_t total = 0;
-    while (total < buffer.size() - 1 && (total == 0 || buffer[total-1] != '\n')) {
-        int res = ::read(fd_, buffer.data() + total, buffer.size() - total - 1);
-        if (res < 0) throw std::runtime_error("Failed Uart read");
-        total += static_cast<size_t>(res);
-    }
+    detail::match_suffix<char, 2> match_crlf("\r\n");
+    size_t total = detail::staggered_read(
+                        [this] (char* xs, size_t n) {
+                            return ::read(fd_, xs, n);
+                        },
+                        buffer.data(), buffer.size(), match_crlf);
 
     buffer[total] = 0;
 

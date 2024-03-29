@@ -24,10 +24,12 @@ public:
         out << "Quit";
     }
 
+    void read_return_value(Socket&) override {}
+
 #ifdef BUILD_SERVER
-    virtual ErrorCode execute(Context& context) override {
+    virtual ReturnData execute(Context& context) override {
         context.quit = true;
-        return ErrorCode::Success;
+        return ReturnData(ErrorCode::Success);
     }
 #endif
 };

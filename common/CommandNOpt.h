@@ -23,9 +23,11 @@ public:
         out << "NOpt";
     }
 
+    void read_return_value(Socket&) override {}
+
 #ifdef BUILD_SERVER
-    virtual ErrorCode execute(Context&) override {
-        return ErrorCode::Success;
+    virtual ReturnData execute(Context&) override {
+        return ReturnData(ErrorCode::Success);
     }
 #endif
 };

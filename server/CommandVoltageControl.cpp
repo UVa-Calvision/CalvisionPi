@@ -1,6 +1,6 @@
 #include "CommandVoltageControl.h"
 
-ErrorCode CommandVoltageControl::execute(Context& context, VoltageControlCommand action) {
+ReturnData CommandVoltageControl::execute(Context& context, VoltageControlCommand action) {
     switch(action) {
         case VoltageControlCommand::HighVoltageEnable: {
             const auto& [enable] = unpack_raw<VoltageControlCommand::HighVoltageEnable>();
@@ -16,7 +16,7 @@ ErrorCode CommandVoltageControl::execute(Context& context, VoltageControlCommand
             std::cout << voltage << "\n";
             if (!context.hv_control.voltage_in_range(voltage)) {
                 std::cerr << "[ERROR] Voltage out of range\n";
-                return ErrorCode::VoltageOutOfRange;
+                return ReturnData(ErrorCode::VoltageOutOfRange);
             }
             context.hv_control.set_voltage(voltage);
             }
@@ -26,11 +26,11 @@ ErrorCode CommandVoltageControl::execute(Context& context, VoltageControlCommand
             std::cout << voltage << "\n";
             if (!context.lv_control.voltage_in_range(voltage)) {
                 std::cerr << "[ERROR] Voltage out of range\n";
-                return ErrorCode::VoltageOutOfRange;
+                return ReturnData(ErrorCode::VoltageOutOfRange);
             }
             context.lv_control.set_voltage(voltage);
             }
             break;
     }
-    return ErrorCode::Success;
+    return ReturnData(ErrorCode::Success);
 }

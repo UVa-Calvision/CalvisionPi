@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 
-// #define USE_SIPM_UART
+#define USE_SIPM_UART
 
 
 struct Context {

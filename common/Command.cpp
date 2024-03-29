@@ -15,14 +15,14 @@ struct CommandCodeFunctor {
             if (begin == end)
                 return nullptr;
 
-            const auto e = CommandType::command_table().template lookup<CommandValues::Name>(*begin++);
-            if (!e)
+            const auto lookup_result = CommandType::command_table().template lookup<CommandValues::Name>(*begin++);
+            if (!lookup_result)
                 return nullptr;
 
-            const auto& data = CommandType::command_table().template get<CommandValues::Types>(*e);
-            std::vector<raw_type> result{static_cast<raw_type>(*CommandType::command_table().to_index(*e))};
+            const auto& data = lookup_result->second.get().template get<CommandValues::ParameterTypes>();
+            std::vector<raw_type> result{static_cast<raw_type>(*CommandType::command_table().to_index(lookup_result->first))};
 
-            for (DataFormat f : *data) {
+            for (DataFormat f : data) {
                 // too few parameters
                 if (begin == end)
                     return nullptr;
@@ -71,15 +71,17 @@ std::unique_ptr<BaseCommand> make_command(const std::vector<std::string>& tokens
     auto begin = tokens.begin();
     auto end = tokens.end();
 
-    if (begin == end) return nullptr;
+    if (begin == end) {
+        std::cout << "No input tokens\n";
+        return nullptr;
+    }
 
-    if (auto code = CommandCodeTable.lookup<CommandCodeValues::Name>(std::string_view(*begin++))) {
+    if (auto lookup_result = CommandCodeTable.lookup<CommandCodeValues::Name>(std::string_view(*begin++))) {
         // returns optional<unique_ptr<BaseCommand>> so we need to unwrap it
-        if (auto command = CommandCodeIndexer::dispatch<CommandCodeFunctor>(*code, begin, end)) {
+        if (auto command = CommandCodeIndexer::dispatch<CommandCodeFunctor>(lookup_result->first, begin, end)) {
             return std::move(*command);
         }
     }
-
     return nullptr;
 }
 
@@ -94,7 +96,7 @@ struct ReadCodeFunctor {
             const auto e = CommandType::command_table().from_index(raw_enum);
             if (!e)
                 return nullptr;
-            std::vector<uint32_t> result(CommandType::command_table().template get<CommandValues::Types>(*e)->size(), 0);
+            std::vector<uint32_t> result(CommandType::command_table().template get<CommandValues::ParameterTypes>(*e)->size(), 0);
             socket.read_buffer(result);
             result.insert(result.begin(), raw_enum);
             return std::make_unique<CommandType>(std::move(result));
