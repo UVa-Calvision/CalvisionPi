@@ -3,7 +3,7 @@
 template <DataFormat f>
 struct read_to_raw_functor {
     raw_type operator()(const std::string& s) const {
-        return binary_cast<raw_type>(format_to_type<f>::read(s));
+        return make_raw(format_to_type<f>::read(s));
     }
 };
 

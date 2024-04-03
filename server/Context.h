@@ -3,6 +3,7 @@
 #include "GpioManager.h"
 #include "VoltageControl.h"
 #include "SiPMSupply.h"
+#include "TemperatureControl.h"
 
 #include <iostream>
 #include <string>
@@ -21,6 +22,7 @@ struct Context {
 #else
         , sipm_control()
 #endif
+        , temperature_control()
     {
         if (!lv_control.good()) {
             std::cerr << "[ERROR] LOW VOLTAGE CONTROL FAILED TO OPEN...\n";
@@ -40,12 +42,12 @@ struct Context {
     GpioChip chip;
     LowVoltageControl lv_control;
     HighVoltageControl hv_control;
-
 #ifdef USE_SIPM_UART
     SipmUartControl sipm_control;
 #else
     SipmI2cControl sipm_control;
 #endif
+    tmp112 temperature_control;
 
     bool quit = false;
 };

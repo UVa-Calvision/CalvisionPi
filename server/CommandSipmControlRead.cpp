@@ -52,7 +52,7 @@ struct ControlRegisterFunctor {
         try {
             value_type value = context.sipm_control.read_register<control_reg, value_type>();
             std::cout << "[SipmControlRead] Read value: " << value << "\n";
-            return ReturnData(ErrorCode::Success, binary_cast<raw_type>(value));
+            return ReturnData(ErrorCode::Success, make_raw<value_type>(value));
         } catch(const std::runtime_error& e) {
             std::cerr << "[ERROR]: Error during type conversion " << e.what() << "\n";
             return ReturnData(ErrorCode::InvalidCommand);

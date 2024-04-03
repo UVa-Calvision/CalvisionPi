@@ -19,7 +19,7 @@ SipmI2cControl::~SipmI2cControl()
 #include <unistd.h>
 
 SipmUartControl::SipmUartControl(const std::string& tty_name)
-    : DeviceReaderWriter("/dev/ttyUSB1" /* + tty_name */, O_RDWR | O_NOCTTY)
+    : DeviceReaderWriter("/dev/ttyUSB0" /* + tty_name */, O_RDWR | O_NOCTTY)
 {
     if (!good())
         throw std::runtime_error("Failed to open /dev/tty" + tty_name);

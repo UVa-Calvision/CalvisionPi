@@ -18,7 +18,7 @@ ReturnData CommandVoltageControl::execute(Context& context, VoltageControlComman
                 std::cerr << "[ERROR] Voltage out of range\n";
                 return ReturnData(ErrorCode::VoltageOutOfRange);
             }
-            context.hv_control.set_voltage(voltage);
+            context.hv_control.execute(voltage);
             }
             break;
         case VoltageControlCommand::LowVoltageSet: {
@@ -28,7 +28,7 @@ ReturnData CommandVoltageControl::execute(Context& context, VoltageControlComman
                 std::cerr << "[ERROR] Voltage out of range\n";
                 return ReturnData(ErrorCode::VoltageOutOfRange);
             }
-            context.lv_control.set_voltage(voltage);
+            context.lv_control.execute(voltage);
             }
             break;
     }

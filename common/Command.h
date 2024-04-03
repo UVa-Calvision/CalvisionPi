@@ -21,7 +21,8 @@ INDEXED_ENUM(CommandCode,
     Quit,
     VoltageControl,
     SipmControlWrite,
-    SipmControlRead
+    SipmControlRead,
+    TemperatureControl
 );
 
 INDEXED_ENUM(CommandCodeValues, Name);
@@ -31,7 +32,8 @@ constexpr static auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCo
     std::pair(CommandCode::Quit,               std::tuple("Quit")),
     std::pair(CommandCode::VoltageControl,     std::tuple("VoltageControl")),
     std::pair(CommandCode::SipmControlWrite,   std::tuple("SipmControlWrite")),
-    std::pair(CommandCode::SipmControlRead,    std::tuple("SipmControlRead"))
+    std::pair(CommandCode::SipmControlRead,    std::tuple("SipmControlRead")),
+    std::pair(CommandCode::TemperatureControl, std::tuple("TemperatureControl"))
 );
 
 

@@ -4,6 +4,7 @@
 #include "CommandVoltageControl.h"
 #include "CommandSipmControlWrite.h"
 #include "CommandSipmControlRead.h"
+#include "CommandTemperatureControl.h"
 
 
 template <CommandCode code>
