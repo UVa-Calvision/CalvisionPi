@@ -2,7 +2,7 @@
 
 INDEXED_ENUM(RegMap, Register);
 
-constexpr static auto CommandToRegTable = EnumTable<TemperatureControlCommandIndexer, RegMapIndexer, TMP112_Configuration>::make_table(
+constexpr inline auto CommandToRegTable = EnumTable<TemperatureControlCommandIndexer, RegMapIndexer, TMP112_Configuration>::make_table(
     std::pair(TemperatureControlCommand::ShutdownMode,        std::tuple(TMP112_Configuration::ShutdownMode  )),
     std::pair(TemperatureControlCommand::ThermostatMode,      std::tuple(TMP112_Configuration::ThermostatMode)),
     std::pair(TemperatureControlCommand::Polarity,            std::tuple(TMP112_Configuration::Polarity      )),
@@ -41,4 +41,16 @@ ReturnData CommandTemperatureControl::execute(Context& context, TemperatureContr
         return ReturnData(ErrorCode::ResourceUnavailable);
 
     return *TemperatureControlCommandIndexer::dispatch<ControlRegisterFunctor>(reg, context, raw_data_[1]);
+}
+
+
+
+ReturnData CommandTemperatureRead::execute(Context& context, TemperatureReadCommand /* reg */) {
+    if (raw_data_.size() != 1)
+        return ReturnData(ErrorCode::PoorlyStructuredCommand);
+
+    if (context.temperature_control_unavailable())
+        return ReturnData(ErrorCode::ResourceUnavailable);
+
+    return ReturnData(ErrorCode::Success, make_raw(context.temperature_control->read_temperature()));
 }

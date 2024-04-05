@@ -22,7 +22,7 @@
 //     Code,
 // );
 // 
-// constexpr static auto TMP112_ConversionRateTable = EnumTable<TMP112_ConversionRateIndexer, TMP112_ConversionRateValues, std::string_view, float, uint8_t>::make_table(
+// constexpr inline auto TMP112_ConversionRateTable = EnumTable<TMP112_ConversionRateIndexer, TMP112_ConversionRateValues, std::string_view, float, uint8_t>::make_table(
 //     std::pair(TMP112_ConversionRate::CR_0_25Hz, std::tuple("0_25Hz",    0.25,   0b00)),
 //     std::pair(TMP112_ConversionRate::CR_1Hz,    std::tuple("1Hz",       1,      0b01)),
 //     std::pair(TMP112_ConversionRate::CR_4Hz,    std::tuple("4Hz",       4,      0b10)),
@@ -46,7 +46,7 @@ INDEXED_ENUM(TMP112_ConfigurationValues,
     Address
 );
 
-constexpr static auto TMP112_ConfigurationTable = EnumTable<TMP112_ConfigurationIndexer, TMP112_ConfigurationValuesIndexer, std::string_view, DataFormat, uint8_t>::make_table(
+constexpr inline auto TMP112_ConfigurationTable = EnumTable<TMP112_ConfigurationIndexer, TMP112_ConfigurationValuesIndexer, std::string_view, DataFormat, uint8_t>::make_table(
     std::pair(TMP112_Configuration::ShutdownMode,   std::tuple("Shutdown",      DataFormat::Bool,    0x8)),
     std::pair(TMP112_Configuration::ThermostatMode, std::tuple("Thermostat",    DataFormat::Bool,    0x9)),
     std::pair(TMP112_Configuration::Polarity,       std::tuple("Polarity",      DataFormat::Bool,    0xA)),

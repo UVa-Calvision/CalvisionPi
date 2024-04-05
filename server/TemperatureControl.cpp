@@ -2,8 +2,8 @@
 
 #include "CppUtils/c_util/BitArray.h"
 
-tmp112::tmp112(const TemperatureInput& /*input*/)
-    : I2cReaderWriter()
+tmp112::tmp112(const TemperatureInput& input)
+    : I2cReaderWriter(input.i2c.bus_id, input.i2c.dev_id, OpenMode::ReadWrite)
 {}
 
 float tmp112::read_temperature() {

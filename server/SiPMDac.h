@@ -25,7 +25,7 @@ INDEXED_ENUM(LtcCommandValue,
     HasParameter
 )
 
-constexpr static auto LtcCommandCodeTable = EnumTable<LtcCommandCodeIndexer, LtcCommandValueIndexer, uint8_t, bool>::make_table(
+constexpr inline auto LtcCommandCodeTable = EnumTable<LtcCommandCodeIndexer, LtcCommandValueIndexer, uint8_t, bool>::make_table(
     std::pair(LtcCommandCode::WriteRegister,                 std::tuple(0b0000,  true)),
     std::pair(LtcCommandCode::UpdateRegister,                std::tuple(0b0001, false)),
     std::pair(LtcCommandCode::WriteRegisterUpdateAll,        std::tuple(0b0010,  true)),
@@ -46,7 +46,7 @@ INDEXED_ENUM(LtcDacCode,
 
 INDEXED_ENUM(LtcDacValue, Code);
 
-constexpr static auto LtcDacCodeTable = EnumTable<LtcDacCodeIndexer, LtcDacValueIndexer, uint8_t>::make_table(
+constexpr inline auto LtcDacCodeTable = EnumTable<LtcDacCodeIndexer, LtcDacValueIndexer, uint8_t>::make_table(
     std::pair(LtcDacCode::DAC_A,        std::tuple(0b0000)),
     std::pair(LtcDacCode::DAC_B,        std::tuple(0b0001)),
     std::pair(LtcDacCode::DAC_C,        std::tuple(0b0010)),

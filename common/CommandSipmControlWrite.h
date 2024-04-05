@@ -31,7 +31,7 @@ INDEXED_ENUM(SipmControlWriteCommand,
     STORE_ON_FLASH          
 );
 
-constexpr static auto SipmControlWriteTable = CommandEnumTable<SipmControlWriteCommandIndexer, 1>::make_table(
+constexpr inline auto SipmControlWriteTable = CommandEnumTable<SipmControlWriteCommandIndexer, 1>::make_table(
     std::pair(SipmControlWriteCommand::HV_ENABLE,                  std::tuple("HV_ENABLE",                DataFormatTypes<1>{DataFormat::Bool }, std::nullopt, "[DISABLED]")),
     std::pair(SipmControlWriteCommand::MODE,                       std::tuple("MODE",                     DataFormatTypes<1>{DataFormat::Int  }, std::nullopt, "[DISABLED]")),
     std::pair(SipmControlWriteCommand::V_TARGET_WRITE,             std::tuple("V_TARGET_WRITE",           DataFormatTypes<1>{DataFormat::Float}, std::nullopt, "[DISABLED]")),

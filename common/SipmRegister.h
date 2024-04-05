@@ -56,7 +56,7 @@ INDEXED_ENUM(SipmRegisterValue,
     Can_Write
 );
 
-constexpr static auto SipmRegisterTable = EnumTable<SipmControlRegisterIndexer, SipmRegisterValueIndexer, std::string_view, uint8_t, DataFormat, bool, bool>::make_table(
+constexpr inline auto SipmRegisterTable = EnumTable<SipmControlRegisterIndexer, SipmRegisterValueIndexer, std::string_view, uint8_t, DataFormat, bool, bool>::make_table(
     std::make_pair(SipmControlRegister::HV_ENABLE,                  std::tuple("HV_ENABLE",                  0, DataFormat::Bool ,  true,  true)),
     std::make_pair(SipmControlRegister::MODE,                       std::tuple("MODE",                       1, DataFormat::Int  ,  true,  true)),
     std::make_pair(SipmControlRegister::V_TARGET_WRITE,             std::tuple("V_TARGET_WRITE",             2, DataFormat::Float,  true,  true)),

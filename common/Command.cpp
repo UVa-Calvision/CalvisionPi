@@ -143,7 +143,7 @@ std::unique_ptr<BaseCommand> read_command(Socket& socket) {
 
 INDEXED_ENUM(DataFormatValue, Name);
 
-constexpr static auto DataFormatTable = EnumTable<DataFormatIndexer, DataFormatValueIndexer, std::string_view>::make_table(
+constexpr inline auto DataFormatTable = EnumTable<DataFormatIndexer, DataFormatValueIndexer, std::string_view>::make_table(
     std::pair(DataFormat::Bool,     std::tuple("bool"   )),
     std::pair(DataFormat::Int,      std::tuple("int"    )),
     std::pair(DataFormat::Uint,     std::tuple("uint"   )),

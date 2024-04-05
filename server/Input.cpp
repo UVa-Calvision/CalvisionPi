@@ -23,7 +23,7 @@ INDEXED_ENUM(InputCommandValue,
 template <typename Indexer>
 using InputTable = EnumTable<Indexer, InputCommandValueIndexer, std::string_view>;
 
-constexpr static auto InputCommandTable = InputTable<InputCommandIndexer>::make_table(
+constexpr inline auto InputCommandTable = InputTable<InputCommandIndexer>::make_table(
     std::pair(InputCommand::GpioChip,       std::tuple("GpioChip"       )),
     std::pair(InputCommand::HV,             std::tuple("HV"             )),
     std::pair(InputCommand::LV,             std::tuple("LV"             )),
@@ -32,13 +32,13 @@ constexpr static auto InputCommandTable = InputTable<InputCommandIndexer>::make_
 );
 
 INDEXED_ENUM(I2cCommand, BusId, DevId)
-constexpr static auto I2cCommandTable = InputTable<I2cCommandIndexer>::make_table(
+constexpr inline auto I2cCommandTable = InputTable<I2cCommandIndexer>::make_table(
     std::pair(I2cCommand::BusId,    std::tuple("BusId")),
     std::pair(I2cCommand::DevId,    std::tuple("DevId"))
 );
 
 INDEXED_ENUM(DacCommand, VMin, VMax, DacMin, DacMax);
-constexpr static auto DacCommandTable = InputTable<DacCommandIndexer>::make_table(
+constexpr inline auto DacCommandTable = InputTable<DacCommandIndexer>::make_table(
     std::pair(DacCommand::VMin,     std::tuple("VMin"   )),
     std::pair(DacCommand::VMax,     std::tuple("VMax"   )),
     std::pair(DacCommand::DacMin,   std::tuple("DacMin" )),
@@ -46,18 +46,18 @@ constexpr static auto DacCommandTable = InputTable<DacCommandIndexer>::make_tabl
 );
 
 INDEXED_ENUM(SipmCommand, Impl, UartPath);
-constexpr static auto SipmImplTable = InputTable<SipmCaenImplIndexer>::make_table(
+constexpr inline auto SipmImplTable = InputTable<SipmCaenImplIndexer>::make_table(
     std::pair(SipmCaenImpl::DISABLE,    std::tuple("Disable")),
     std::pair(SipmCaenImpl::UART,       std::tuple("UART"   )),
     std::pair(SipmCaenImpl::I2C,        std::tuple("I2C"    ))
 );
-constexpr static auto SipmCommandTable = InputTable<SipmCommandIndexer>::make_table(
+constexpr inline auto SipmCommandTable = InputTable<SipmCommandIndexer>::make_table(
     std::pair(SipmCommand::Impl,        std::tuple("Impl"       )),
     std::pair(SipmCommand::UartPath,    std::tuple("UartPath"   ))
 );
 
 INDEXED_ENUM(GpioCommand, Path);
-constexpr static auto GpioCommandTable = InputTable<GpioCommandIndexer>::make_table(
+constexpr inline auto GpioCommandTable = InputTable<GpioCommandIndexer>::make_table(
     std::pair(GpioCommand::Path, std::tuple("Path"))
 );
 
@@ -143,10 +143,6 @@ bool parse_gpio(GpioInput& input, const std::vector<std::string>& tokens) {
     }
 }
 
-bool parse_temperature(TemperatureInput&, const std::vector<std::string>&) {
-    return true;
-}
-
 ContextInput::ContextInput(const std::string& filename) {
     std::ifstream input(filename);
     std::string line;
@@ -177,7 +173,7 @@ ContextInput::ContextInput(const std::string& filename) {
                                 || (sipm_input.i2c ? parse_i2c(*sipm_input.i2c, tokens) : parse_i2c(temp, tokens));
                         } break;
                     case InputCommand::Temperature: {
-                        success = parse_temperature(temperature_input, tokens);
+                        success = parse_i2c(temperature_input.i2c, tokens);
                         } break;
                 }
 

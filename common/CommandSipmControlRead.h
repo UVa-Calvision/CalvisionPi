@@ -43,7 +43,7 @@ INDEXED_ENUM(SipmControlReadCommand,
     SERIAL_NUMBER              
 )
 
-constexpr static auto SipmControlReadTable = CommandEnumTable<SipmControlReadCommandIndexer, 0>::make_table(
+constexpr inline auto SipmControlReadTable = CommandEnumTable<SipmControlReadCommandIndexer, 0>::make_table(
     std::pair(SipmControlReadCommand::HV_ENABLE,                  std::tuple("HV_ENABLE",                 DataFormatTypes<0>{}, DataFormat::Bool , "[DISABLED]")),
     std::pair(SipmControlReadCommand::MODE,                       std::tuple("MODE",                      DataFormatTypes<0>{}, DataFormat::Int  , "[DISABLED]")),
     std::pair(SipmControlReadCommand::V_TARGET_WRITE,             std::tuple("V_TARGET_WRITE",            DataFormatTypes<0>{}, DataFormat::Float, "[DISABLED]")),

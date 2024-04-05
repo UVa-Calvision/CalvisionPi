@@ -12,7 +12,7 @@ INDEXED_ENUM(TemperatureControlCommand,
     ConversionRate
 );
 
-constexpr static auto TemperatureControlTable = CommandEnumTable<TemperatureControlCommandIndexer, 1>::make_table(
+constexpr inline auto TemperatureControlTable = CommandEnumTable<TemperatureControlCommandIndexer, 1>::make_table(
     std::pair(TemperatureControlCommand::ShutdownMode,     std::tuple("Shutdown",      DataFormatTypes<1>{DataFormat::Bool},      std::nullopt, "Shutdown device")),
     std::pair(TemperatureControlCommand::ThermostatMode,   std::tuple("Thermostat",    DataFormatTypes<1>{DataFormat::Bool},      std::nullopt, "Comparator mode (0) or interrupt mode (1)")),
     std::pair(TemperatureControlCommand::Polarity,         std::tuple("Polarity",      DataFormatTypes<1>{DataFormat::Bool},      std::nullopt, "Set polarity of ALERT flag to active low (0) or high (1)")),
@@ -23,3 +23,15 @@ constexpr static auto TemperatureControlTable = CommandEnumTable<TemperatureCont
 );
 
 CommandClass(TemperatureControl);
+
+
+
+INDEXED_ENUM(TemperatureReadCommand,
+    Read
+);
+
+constexpr inline auto TemperatureReadTable = CommandEnumTable<TemperatureReadCommandIndexer, 0>::make_table(
+    std::pair(TemperatureReadCommand::Read,     std::tuple("Read",      DataFormatTypes<0>{},   DataFormat::Float,  "Read temperature in degrees Celsius"))
+);
+
+CommandClass(TemperatureRead);

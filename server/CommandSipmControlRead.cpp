@@ -2,7 +2,7 @@
 
 INDEXED_ENUM(RegMap, Register);
 
-constexpr static auto CommandToRegTable = EnumTable<SipmControlReadCommandIndexer, RegMapIndexer, SipmControlRegister>::make_table(
+constexpr inline auto CommandToRegTable = EnumTable<SipmControlReadCommandIndexer, RegMapIndexer, SipmControlRegister>::make_table(
     std::pair(SipmControlReadCommand::HV_ENABLE,                  std::tuple(SipmControlRegister::HV_ENABLE)),                 
     std::pair(SipmControlReadCommand::MODE,                       std::tuple(SipmControlRegister::MODE)),                      
     std::pair(SipmControlReadCommand::V_TARGET_WRITE,             std::tuple(SipmControlRegister::V_TARGET_WRITE)),            

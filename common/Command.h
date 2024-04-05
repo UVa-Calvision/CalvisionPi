@@ -22,7 +22,8 @@ INDEXED_ENUM(CommandCode,
     VoltageControl,
     SipmControlWrite,
     SipmControlRead,
-    TemperatureControl
+    TemperatureControl,
+    TemperatureRead
 );
 
 INDEXED_ENUM(CommandCodeValues,
@@ -30,13 +31,14 @@ INDEXED_ENUM(CommandCodeValues,
     Help
 );
 
-constexpr static auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCodeValuesIndexer, std::string_view, std::string_view>::make_table(
+constexpr inline auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCodeValuesIndexer, std::string_view, std::string_view>::make_table(
     std::pair(CommandCode::NOpt,               std::tuple("NOpt",               "Do nothing (just for debugging)"   )),
     std::pair(CommandCode::Quit,               std::tuple("Quit",               "Tell the server to quit"           )),
     std::pair(CommandCode::VoltageControl,     std::tuple("VoltageControl",     "LED Voltage Control"               )),
     std::pair(CommandCode::SipmControlWrite,   std::tuple("SipmControlWrite",   "CAEN SiPM Voltage write commands"  )),
     std::pair(CommandCode::SipmControlRead,    std::tuple("SipmControlRead",    "CAEN SiPM Voltage read commands"   )),
-    std::pair(CommandCode::TemperatureControl, std::tuple("TemperatureControl", "Temperature readout"               ))
+    std::pair(CommandCode::TemperatureControl, std::tuple("TemperatureControl", "Temperature readout configuration" )),
+    std::pair(CommandCode::TemperatureRead,    std::tuple("TemperatureRead",    "Temperature readout"               ))
 );
 
 
@@ -56,7 +58,7 @@ INDEXED_ENUM(ErrorCodeValue,
     Name
 );
 
-constexpr static auto ErrorCodeTable = EnumTable<ErrorCodeIndexer, ErrorCodeValueIndexer, std::string_view>::make_table(
+constexpr inline auto ErrorCodeTable = EnumTable<ErrorCodeIndexer, ErrorCodeValueIndexer, std::string_view>::make_table(
     std::pair(ErrorCode::Success,                  std::tuple("Success"                   )),
     std::pair(ErrorCode::InvalidCommand,           std::tuple("Invalid command"           )),
     std::pair(ErrorCode::PoorlyStructuredCommand,  std::tuple("Poorly structured command" )),

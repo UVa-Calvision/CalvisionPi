@@ -19,4 +19,5 @@ SIPM UartPath /dev/ttyUSB0
 SIPM BusId 1
 SIPM DevId 0x70
 
-Temperature nothing
+Temperature BusId 1
+Temperature DevId 0x38

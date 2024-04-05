@@ -46,6 +46,7 @@ struct GpioInput {
 
 
 struct TemperatureInput {
+    I2cInput i2c;
 };
 
 
