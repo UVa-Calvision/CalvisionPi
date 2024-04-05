@@ -45,7 +45,7 @@ struct ControlRegisterFunctor {
             return ReturnData(ErrorCode::InvalidCommand);
         }
 
-        context.sipm_control.write_register<control_reg, value_type>(value);
+        context.sipm_control->write_register<control_reg, value_type>(value);
 
         return ReturnData(ErrorCode::Success);
     }
@@ -54,6 +54,9 @@ struct ControlRegisterFunctor {
 ReturnData CommandSipmControlWrite::execute(Context& context, SipmControlWriteCommand reg) {
     if (raw_data_.size() != 2)
         return ReturnData(ErrorCode::PoorlyStructuredCommand);
+
+    if (context.sipm_control_unavailable())
+        return ReturnData(ErrorCode::ResourceUnavailable);
 
     return *SipmControlWriteCommandIndexer::dispatch<ControlRegisterFunctor>(reg, context, raw_data_[1]);
 }

@@ -1,10 +1,10 @@
 #include "GpioManager.h"
 
-GpioChip::GpioChip(const std::string filename)
-    : chip_(gpiod_chip_open(filename.c_str()))
+GpioChip::GpioChip(const GpioInput& input)
+    : chip_(gpiod_chip_open(input.file.c_str()))
 {
     if (!chip_)
-        throw std::runtime_error("Couldn't open chip " + filename);
+        throw std::runtime_error("Couldn't open chip " + input.file);
 }
 
 GpioChip::~GpioChip() {

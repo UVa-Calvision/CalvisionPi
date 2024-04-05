@@ -25,15 +25,18 @@ INDEXED_ENUM(CommandCode,
     TemperatureControl
 );
 
-INDEXED_ENUM(CommandCodeValues, Name);
+INDEXED_ENUM(CommandCodeValues,
+    Name,
+    Help
+);
 
-constexpr static auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCodeValuesIndexer, std::string_view>::make_table(
-    std::pair(CommandCode::NOpt,               std::tuple("NOpt")),
-    std::pair(CommandCode::Quit,               std::tuple("Quit")),
-    std::pair(CommandCode::VoltageControl,     std::tuple("VoltageControl")),
-    std::pair(CommandCode::SipmControlWrite,   std::tuple("SipmControlWrite")),
-    std::pair(CommandCode::SipmControlRead,    std::tuple("SipmControlRead")),
-    std::pair(CommandCode::TemperatureControl, std::tuple("TemperatureControl"))
+constexpr static auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCodeValuesIndexer, std::string_view, std::string_view>::make_table(
+    std::pair(CommandCode::NOpt,               std::tuple("NOpt",               "Do nothing (just for debugging)"   )),
+    std::pair(CommandCode::Quit,               std::tuple("Quit",               "Tell the server to quit"           )),
+    std::pair(CommandCode::VoltageControl,     std::tuple("VoltageControl",     "LED Voltage Control"               )),
+    std::pair(CommandCode::SipmControlWrite,   std::tuple("SipmControlWrite",   "CAEN SiPM Voltage write commands"  )),
+    std::pair(CommandCode::SipmControlRead,    std::tuple("SipmControlRead",    "CAEN SiPM Voltage read commands"   )),
+    std::pair(CommandCode::TemperatureControl, std::tuple("TemperatureControl", "Temperature readout"               ))
 );
 
 
@@ -49,7 +52,11 @@ INDEXED_ENUM(ErrorCode,
     CannotRead
 );
 
-constexpr static auto ErrorCodeTable = EnumTable<ErrorCodeIndexer, CommandCodeValuesIndexer, std::string_view>::make_table(
+INDEXED_ENUM(ErrorCodeValue,
+    Name
+);
+
+constexpr static auto ErrorCodeTable = EnumTable<ErrorCodeIndexer, ErrorCodeValueIndexer, std::string_view>::make_table(
     std::pair(ErrorCode::Success,                  std::tuple("Success"                   )),
     std::pair(ErrorCode::InvalidCommand,           std::tuple("Invalid command"           )),
     std::pair(ErrorCode::PoorlyStructuredCommand,  std::tuple("Poorly structured command" )),
@@ -86,6 +93,7 @@ public:
 
     void read(Socket& socket) {
         socket.read<raw_type>(raw_enum_);
+        std::cout << "Raw Enum: " << raw_enum_ << "\n";
         socket.read_buffer(raw_data_);
     }
 
@@ -113,12 +121,13 @@ protected:
 INDEXED_ENUM(CommandValues,
     Name,
     ParameterTypes,
-    ReturnType
+    ReturnType,
+    Help
 );
 
 template <typename Indexer, size_t N>
 using CommandEnumTable = EnumTable<Indexer, CommandValuesIndexer,
-                                   std::string_view, DataFormatTypes<N>, std::optional<DataFormat> >;
+                                   std::string_view, DataFormatTypes<N>, std::optional<DataFormat>, std::string_view>;
 
 template <typename T, typename EnumType>
 class Command : public BaseCommand {
@@ -243,3 +252,4 @@ struct CommandMapping;
 
 std::unique_ptr<BaseCommand> make_command(const std::vector<std::string>& tokens);
 std::unique_ptr<BaseCommand> read_command(Socket& socket);
+void print_command_help();

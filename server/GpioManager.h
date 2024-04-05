@@ -4,9 +4,11 @@
 #include <gpiod.h>
 #include <stdexcept>
 
+#include "Input.h"
+
 class GpioChip {
 public:
-    GpioChip(const std::string filename);
+    GpioChip(const GpioInput& input);
     ~GpioChip();
 
     void enable_hv() {
@@ -15,6 +17,10 @@ public:
 
     void disable_hv() {
         set_line("hv_enable", hv_enable_offset, 0);
+    }
+
+    bool good() const {
+        return chip_ != nullptr;
     }
 
 private:

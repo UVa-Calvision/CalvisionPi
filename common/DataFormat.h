@@ -38,26 +38,20 @@ struct format_to_type<DataFormat::Bool> {
         return b;
     }
     static type convert_raw(raw_type x) { return static_cast<bool>(x); }
-
-    constexpr static uint8_t SipmCode = 0x02;
 };
 
 template <>
 struct format_to_type<DataFormat::Int> {
     using type = int32_t;
-    static type read(const std::string& s) { return std::stoi(s); }
+    static type read(const std::string& s) { return std::stoi(s, nullptr, 0); }
     static type convert_raw(raw_type x) { return binary_cast<type>(x); }
-
-    constexpr static uint8_t SipmCode = 0x00;
 };
 
 template <>
 struct format_to_type<DataFormat::Uint> {
     using type = uint32_t;
-    static type read(const std::string& s) { return std::stoul(s); }
+    static type read(const std::string& s) { return std::stoul(s, nullptr, 0); }
     static type convert_raw(raw_type x) { return binary_cast<type>(x); }
-
-    constexpr static uint8_t SipmCode = 0x02;
 };
 
 template <>
@@ -65,8 +59,6 @@ struct format_to_type<DataFormat::Float> {
     using type = float;
     static type read(const std::string& s) { return std::stof(s); }
     static type convert_raw(raw_type x) { return binary_cast<type>(x); }
-
-    constexpr static uint8_t SipmCode = 0x03;
 };
 
 template <DataFormat f> using format_to_type_t = typename format_to_type<f>::type;

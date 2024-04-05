@@ -60,15 +60,18 @@ private:
 
 int main(int argc, char** argv) {
 
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " port\n";
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " [port] [config_file]\n";
         return 1;
     }
 
     int port = atoi(argv[1]);
+    std::string config_file = argv[2];
 
     try {
-        Context context;
+        ContextInput config(config_file);
+
+        Context context(config);
 
         ServerListener server(port, &context);
         server.listen();

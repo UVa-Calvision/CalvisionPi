@@ -50,7 +50,7 @@ struct ControlRegisterFunctor {
     
     ReturnData operator()(Context& context) const {
         try {
-            value_type value = context.sipm_control.read_register<control_reg, value_type>();
+            value_type value = context.sipm_control->read_register<control_reg, value_type>();
             std::cout << "[SipmControlRead] Read value: " << value << "\n";
             return ReturnData(ErrorCode::Success, make_raw<value_type>(value));
         } catch(const std::runtime_error& e) {
@@ -63,6 +63,9 @@ struct ControlRegisterFunctor {
 ReturnData CommandSipmControlRead::execute(Context& context, SipmControlReadCommand reg) {
     if (raw_data_.size() < 1)
         return ReturnData(ErrorCode::PoorlyStructuredCommand);
+
+    if (context.sipm_control_unavailable())
+        return ReturnData(ErrorCode::ResourceUnavailable);
 
     return *SipmControlReadCommandIndexer::dispatch<ControlRegisterFunctor>(reg, context);
 }

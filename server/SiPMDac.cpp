@@ -1,15 +1,13 @@
 #include "SiPMDac.h"
 #include "CppUtils/c_util/BitArray.h"
 
-ltc2635::ltc2635(uint8_t bus_id, uint8_t dev_id,
-                 float v_min, float v_max,
-                 uint16_t dac_min, uint16_t dac_max)
-    : I2cReaderWriter(bus_id, dev_id, OpenMode::ReadWrite),
+ltc2635::ltc2635(const VoltageControlInput& input)
+    : I2cReaderWriter(input.i2c.bus_id, input.i2c.dev_id, OpenMode::ReadWrite),
     message_buffer_({0,0,0}),
-    dacs_{DAC(&message_buffer_[1], v_min, v_max, dac_min, dac_max),
-          DAC(&message_buffer_[1], v_min, v_max, dac_min, dac_max),
-          DAC(&message_buffer_[1], v_min, v_max, dac_min, dac_max),
-          DAC(&message_buffer_[1], v_min, v_max, dac_min, dac_max)}
+    dacs_{DAC(&message_buffer_[1], input.dac),
+          DAC(&message_buffer_[1], input.dac),
+          DAC(&message_buffer_[1], input.dac),
+          DAC(&message_buffer_[1], input.dac)}
 {
 }
 

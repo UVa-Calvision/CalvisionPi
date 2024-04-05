@@ -1,8 +1,36 @@
 #include "SiPMSupply.h"
 
-SipmI2cControl::SipmI2cControl()
+std::unique_ptr<SipmControl> SipmControl::make_control(const SipmCaenInput& input) {
+    
+    try {
+        switch (input.impl) {
+            case SipmCaenImpl::DISABLE: return nullptr;
+            case SipmCaenImpl::UART:
+                if (input.uart_path) {
+                    return std::make_unique<SipmUartControl>(*input.uart_path);
+                } else {
+                    std::cerr << "[ERROR] tried to use UART control for CAEN SiPM but no path provided\n";
+                } break;
+            case SipmCaenImpl::I2C:
+                if (input.i2c) {
+                    return std::make_unique<SipmI2cControl>(*input.i2c);
+                } else {
+                    std::cerr << "[ERROR] tried to use I2C control for CAEN SiPM but no valid data provided\n";
+                } break;
+        }
+    } catch (const std::runtime_error& e) {
+        std::cerr << "[ERROR] Error while making SiPM CAEN Control: " << e.what() << "\n"
+                  << "Continuing without...\n";
+    }
+
+    return nullptr;
+}
+
+
+
+SipmI2cControl::SipmI2cControl(const I2cInput& input)
     : SipmControl(),
-    I2cReaderWriter(I2C_BUS_ID, I2C_DEV_ID, OpenMode::ReadWrite)
+    I2cReaderWriter(input.bus_id, input.dev_id, OpenMode::ReadWrite)
 {}
 
 SipmI2cControl::~SipmI2cControl()
@@ -19,12 +47,13 @@ SipmI2cControl::~SipmI2cControl()
 #include <unistd.h>
 
 SipmUartControl::SipmUartControl(const std::string& tty_name)
-    : DeviceReaderWriter("/dev/ttyUSB0" /* + tty_name */, O_RDWR | O_NOCTTY)
+    : DeviceReaderWriter(tty_name, O_RDWR | O_NOCTTY)
 {
-    if (!good())
-        throw std::runtime_error("Failed to open /dev/tty" + tty_name);
-
     tcgetattr(fd_, &old_termios_);
+
+    if (!good())
+        throw std::runtime_error("Failed to open " + tty_name);
+
 
 
     struct termios new_termios;
@@ -79,7 +108,7 @@ SipmUartControl::SipmUartControl(const std::string& tty_name)
     // send_string(CRLF);
     // send_string(CRLF);
     // usleep(100'000);
-    send_command("MACHINE");
+    write_string("AT+MACHINE\n");
 }
 
 SipmUartControl::~SipmUartControl() {

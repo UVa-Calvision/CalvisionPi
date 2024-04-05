@@ -57,9 +57,7 @@ constexpr static auto LtcDacCodeTable = EnumTable<LtcDacCodeIndexer, LtcDacValue
 
 class ltc2635 : private I2cReaderWriter {
 public:
-    ltc2635(uint8_t bus_id, uint8_t dev_id,
-            float v_min, float v_max,
-            uint16_t dac_min, uint16_t dac_max);
+    ltc2635(const VoltageControlInput& input);
 
     bool good() const;
 

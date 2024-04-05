@@ -4,10 +4,11 @@
 #include <span>
 #include <cstdint>
 #include <type_traits>
+#include <memory>
 
 #include "SipmRegister.h"
+#include "Input.h"
 
-template <typename ControlImpl>
 class SipmControl {
 public:
     virtual ~SipmControl() {}
@@ -17,7 +18,7 @@ public:
         static_assert(SipmRegisterTable.get<reg, SipmRegisterValue::Can_Write>());
         static_assert(valid_register_type<T, reg>());
 
-        impl().template i2c_write<T>(SipmRegisterTable.get<reg, SipmRegisterValue::Register>(), value);
+        this->write_impl(SipmRegisterTable.get<reg, SipmRegisterValue::Register>(), type_to_format<T>(), make_raw<T>(value));
     }
 
     template <SipmControlRegister reg, typename T>
@@ -25,42 +26,34 @@ public:
         static_assert(SipmRegisterTable.get<reg, SipmRegisterValue::Can_Read>());
         static_assert(valid_register_type<T, reg>());
 
-        return impl().template i2c_read<T>(SipmRegisterTable.get<reg, SipmRegisterValue::Register>());
+        return format_to_type<type_to_format<T>()>::convert_raw(
+            this->read_impl(SipmRegisterTable.get<reg, SipmRegisterValue::Register>(), type_to_format<T>()));
     }
 
     virtual bool good() const = 0;
+
+    static std::unique_ptr<SipmControl> make_control(const SipmCaenInput& input);
 
 protected:
     SipmControl()
     {}
 
-private:
-    ControlImpl& impl() {
-        return *static_cast<ControlImpl*>(this);
-    }
-
-    const ControlImpl& impl() const {
-        return *static_cast<const ControlImpl*>(this);
-    }
+    virtual void write_impl(uint8_t address, DataFormat format, raw_type raw_value) = 0;
+    virtual raw_type read_impl(uint8_t address, DataFormat format) = 0;
 };
 
 
 #include "CppUtils/io/I2cHandle.h"
 
 
-class SipmI2cControl : public SipmControl<SipmI2cControl>, private I2cReaderWriter {
+class SipmI2cControl : public SipmControl, private I2cReaderWriter {
 public:
-    SipmI2cControl();
+    SipmI2cControl(const I2cInput& input);
     virtual ~SipmI2cControl();
 
     virtual bool good() const { return I2cReaderWriter::good(); }
 
 protected:
-    friend class SipmControl<SipmI2cControl>;
-
-    template <typename T>
-    using format = format_to_type<type_to_format<T>()>;
-
     template <size_t N>
     void print_command(const std::array<uint8_t, N>& message) {
         std::cout << "I2C Command: " << std::hex;
@@ -70,23 +63,30 @@ protected:
         std::cout << std::dec << "\n";
     }
 
-    template <typename T>
-    void i2c_write(uint8_t address, T value) {
+    uint8_t format_code(DataFormat f) {
+        switch (f) {
+            case DataFormat::Bool: return 0x02;
+            case DataFormat::Int: return 0x00;
+            case DataFormat::Uint: return 0x02;
+            case DataFormat::Float: return 0x03;
+        }
+        return 0x00;
+    }
+
+    void write_impl(uint8_t address, DataFormat f, raw_type raw_value) override {
         static std::array<uint8_t, 6> write_message;
         write_message[0] = address;
-        write_message[1] = static_cast<uint8_t>(format<T>::SipmCode);
-        raw_type raw_value = make_raw<T>(value);
+        write_message[1] = format_code(f);
         for (size_t i = 0; i < sizeof(raw_type); i++) {
             write_message[2+i] = ((uint8_t*) &raw_value)[i];
         }
         write_buffer(write_message);
     }
 
-    template <typename T>
-    T i2c_read(uint8_t address) {
+    raw_type read_impl(uint8_t address, DataFormat f) override {
         static std::array<uint8_t, 2> write_message;
         write_message[0] = address;
-        write_message[1] = static_cast<uint8_t>(format<T>::SipmCode);
+        write_message[1] = format_code(f);
         write_buffer(write_message);
 
         static std::array<uint8_t, 4> read_message;
@@ -95,11 +95,10 @@ protected:
         for (size_t i = 0; i < sizeof(raw_type); i++) {
             ((uint8_t*) &raw_value)[i] = read_message[i];
         }
-        return format<T>::convert_raw(raw_value);
+        return raw_value;
     }
 
 private:
-
     constexpr static uint8_t I2C_BUS_ID = 1;
     constexpr static uint8_t I2C_DEV_ID = 0x70;
 };
@@ -112,53 +111,34 @@ private:
 
 #include "CppUtils/io/DeviceHandle.h"
 
-namespace {
-
-#include <type_traits>
-
-template <typename... Args, std::enable_if_t<sizeof...(Args) == 0, bool> = true>
-void concat_commands(std::ostream&, const Args&...) {
-}
-
-template <typename Arg, typename... Args>
-void concat_commands(std::ostream& out, const Arg& a, const Args&... args) {
-    out << ',' << a;
-    concat_commands<Args...>(out, args...);
-}
-
-};
-
-class SipmUartControl : public SipmControl<SipmUartControl>, private DeviceReaderWriter {
+class SipmUartControl : public SipmControl, private DeviceReaderWriter {
 public:
-    SipmUartControl(const std::string& tty_name);
+    SipmUartControl(const std::string& input);
     virtual ~SipmUartControl();
 
     virtual bool good() const { return DeviceReaderWriter::good(); }
 
 protected:
-    friend class SipmControl<SipmUartControl>;
-
-    template <typename T>
-    void i2c_write(uint8_t address, T value) {
-        send_command("SET", static_cast<unsigned int>(address), value);
-        std::cout << "[RESPONSE] " << read_response() << "\n";
+    void write_impl(uint8_t address, DataFormat f, raw_type value) {
+        send_command("SET", address, f, value);
     }
 
-    template <typename T>
-    T i2c_read(uint8_t address) {
-        send_command("GET", static_cast<unsigned int>(address));
+    raw_type read_impl(uint8_t address, DataFormat f) {
+        send_command("GET", address, f);
         std::string response = read_response();
-        std::cout << "[RESPONSE] " << response << "\n";
         if (response.length() < 3) std::runtime_error("Invalid Uart prefix: " + response);
-        return format_to_type<type_to_format<T>()>::read(response.substr(3));
+        return *read_to_raw(f, response.substr(3));
     }
 
 private:
-    template <typename... Args>
-    void send_command(const std::string& command_name, const Args&... args) {
+    void send_command(const std::string& command_name, uint8_t address,
+                      DataFormat f, std::optional<raw_type> value = std::nullopt) {
         std::stringstream s;
-        s << "AT+" << command_name;
-        concat_commands(s, args...);
+        s << "AT+" << command_name << "," << static_cast<unsigned>(address);
+        if (value) {
+            s << ",";
+            dump_dataformat(s, f, *value);
+        }
         s << CRLF;
         write_string(s.str());
     }

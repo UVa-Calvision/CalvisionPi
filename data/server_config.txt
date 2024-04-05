@@ -1,0 +1,22 @@
+GpioChip Path /dev/gpiochip0
+
+LV BusId 1
+LV DevId 0x64
+LV VMin 0
+LV VMax 4.8e3
+LV DacMin 0
+LV DacMax 0xfff
+
+HV BusId 1
+HV DevId 0x65
+HV VMin 59.03e3
+HV VMax 4.459e3
+HV DacMin 0x1c3
+HV DacMax 0x7d0
+
+SIPM Impl Disable
+SIPM UartPath /dev/ttyUSB0
+SIPM BusId 1
+SIPM DevId 0x70
+
+Temperature nothing

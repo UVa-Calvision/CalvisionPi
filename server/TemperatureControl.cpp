@@ -2,7 +2,7 @@
 
 #include "CppUtils/c_util/BitArray.h"
 
-tmp112::tmp112()
+tmp112::tmp112(const TemperatureInput& /*input*/)
     : I2cReaderWriter()
 {}
 

@@ -8,48 +8,23 @@
 #include <iostream>
 #include <string>
 
-#define USE_SIPM_UART
-
 
 struct Context {
-    
-    Context()
-        : chip("/dev/gpiochip0")
-        , lv_control()
-        , hv_control()
-#ifdef USE_SIPM_UART
-        , sipm_control("USB0")
-#else
-        , sipm_control()
-#endif
-        , temperature_control()
-    {
-        if (!lv_control.good()) {
-            std::cerr << "[ERROR] LOW VOLTAGE CONTROL FAILED TO OPEN...\n";
-        }
+    Context(const ContextInput& input);
 
-        if (!hv_control.good()) {
-            std::cerr << "[ERROR] HIGH VOLTAGE CONTROL FAILED TO OPEN...\n";
-        }
-
-        if (!sipm_control.good()) {
-            std::cerr << "[ERROR] SIPM CONTROL FAILED TO OPEN...\n";
-        }
-
-
-    }
-
-    GpioChip chip;
-    LowVoltageControl lv_control;
-    HighVoltageControl hv_control;
-#ifdef USE_SIPM_UART
-    SipmUartControl sipm_control;
-#else
-    SipmI2cControl sipm_control;
-#endif
-    tmp112 temperature_control;
+    std::unique_ptr<GpioChip> chip;
+    std::unique_ptr<mcp4725> lv_control;
+    std::unique_ptr<mcp4725> hv_control;
+    std::unique_ptr<SipmControl> sipm_control;
+    std::unique_ptr<tmp112> temperature_control;
 
     bool quit = false;
+
+    bool chip_unavailable() const { return !(chip && chip->good()); }
+    bool lv_control_unavailable() const { return !(lv_control && lv_control->good()); }
+    bool hv_control_unavailable() const { return !(hv_control && hv_control->good()); }
+    bool sipm_control_unavailable() const { return !(sipm_control && sipm_control->good()); }
+    bool temperature_control_unavailable() const { return !(temperature_control && temperature_control->good()); }
 };
 
 

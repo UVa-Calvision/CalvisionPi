@@ -1,9 +1,12 @@
+#pragma once
+
 #include "CppUtils/io/I2cHandle.h"
 #include "CppUtils/c_util/Enum.h"
 #include <string_view>
 
 #include "CppUtils/c_util/BitArray.h"
 
+#include "Input.h"
 #include "DataFormat.h"
 
 // INDEXED_ENUM(TMP112_ConversionRate,
@@ -59,7 +62,7 @@ class tmp112 : private I2cReaderWriter {
     using ConfigStateType = BitArray<Endianness::Big, 16>;
 
 public:
-    tmp112();
+    tmp112(const TemperatureInput& input);
 
     using I2cReaderWriter::good;
 

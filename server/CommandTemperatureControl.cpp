@@ -27,7 +27,7 @@ struct ControlRegisterFunctor {
             return ReturnData(ErrorCode::InvalidCommand);
         }
 
-        context.temperature_control.write_configuration<control_reg, value_type>(value);
+        context.temperature_control->write_configuration<control_reg, value_type>(value);
 
         return ReturnData(ErrorCode::Success);
     }
@@ -36,6 +36,9 @@ struct ControlRegisterFunctor {
 ReturnData CommandTemperatureControl::execute(Context& context, TemperatureControlCommand reg) {
     if (raw_data_.size() != 2)
         return ReturnData(ErrorCode::PoorlyStructuredCommand);
+
+    if (context.temperature_control_unavailable())
+        return ReturnData(ErrorCode::ResourceUnavailable);
 
     return *TemperatureControlCommandIndexer::dispatch<ControlRegisterFunctor>(reg, context, raw_data_[1]);
 }

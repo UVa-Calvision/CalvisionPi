@@ -4,12 +4,13 @@
 #include <cstdint>
 
 #include "CppUtils/container/ArrayView.h"
+#include "Input.h"
 
 float linear_interpolation(float x, float x_min, float x_max, float y_min, float y_max);
 
 class DAC {
 public:
-    DAC(ArrayView<uint8_t, 2> buffer, float v_min, float v_max, uint16_t dac_min, uint16_t dac_max);
+    DAC(ArrayView<uint8_t, 2> buffer, const DacInput& input);
 
     void set_v_min(float v_min);
     void set_v_max(float v_max);

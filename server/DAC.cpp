@@ -14,8 +14,10 @@ float linear_interpolate(float x, float x_min, float x_max, float y_min, float y
     return slope * (x - x_min) + y_min;
 }
 
-DAC::DAC(ArrayView<uint8_t, 2> buffer, float v_min, float v_max, uint16_t dac_min, uint16_t dac_max)
-    : buffer_(buffer), v_min_(v_min), v_max_(v_max), dac_min_(dac_min), dac_max_(dac_max)
+DAC::DAC(ArrayView<uint8_t, 2> buffer, const DacInput& input)
+    : buffer_(buffer)
+    , v_min_(input.v_min), v_max_(input.v_max)
+    , dac_min_(input.dac_min), dac_max_(input.dac_max)
 {}
 
 
