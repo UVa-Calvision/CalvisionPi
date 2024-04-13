@@ -11,10 +11,10 @@
 static bool batch_mode = false;
 
 void wait_for_key() {
-    if (!batch_mode) {
-        std::cout << "Waiting for key...\n";
-        std::cin.get();
-    }
+    // if (!batch_mode) {
+    //     std::cout << "Waiting for key...\n";
+    //     std::cin.get();
+    // }
 }
 
 void send_command(Socket& server, BaseCommand& command) {

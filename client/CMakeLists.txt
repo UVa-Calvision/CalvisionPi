@@ -16,7 +16,7 @@ target_include_directories(client PUBLIC
 target_link_libraries(client PRIVATE CppUtils::CppUtilsIO CppUtils::CppUtilsNetworking)
 target_compile_features(client PUBLIC cxx_std_14)
 
-target_precompile_headers(client PRIVATE ${COMMON_HEADER_LIST} ${CLIENT_HEADER_LIST})
+# target_precompile_headers(client PRIVATE ${COMMON_HEADER_LIST} ${CLIENT_HEADER_LIST})
 
 install(TARGETS client
     LIBRARY DESTINATION "lib"

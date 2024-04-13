@@ -9,10 +9,8 @@ ltc2635::ltc2635(const VoltageControlInput& input)
           DAC(&message_buffer_[1], input.dac),
           DAC(&message_buffer_[1], input.dac)}
 {
+    std::cout << "ltc2635 dev id: " << (unsigned) input.i2c.dev_id << "\n";
 }
-
-
-bool ltc2635::good() const { return handle_.good(); }
 
 DAC& ltc2635::dac(LtcDacCode i) {
     if (i == LtcDacCode::ALL_DACs) return dacs_[0];

@@ -15,7 +15,7 @@ INDEXED_ENUM(LtcCommandCode,
     WriteRegisterUpdateAll,
     WriteUpdateRegister,
     PowerDownRegister,
-    PowderDownChip,
+    PowerDownChip,
     SelectInternalReference,
     SelectExternalReference
 )
@@ -31,7 +31,7 @@ constexpr inline auto LtcCommandCodeTable = EnumTable<LtcCommandCodeIndexer, Ltc
     std::pair(LtcCommandCode::WriteRegisterUpdateAll,        std::tuple(0b0010,  true)),
     std::pair(LtcCommandCode::WriteUpdateRegister,           std::tuple(0b0011,  true)),
     std::pair(LtcCommandCode::PowerDownRegister,             std::tuple(0b0100, false)),
-    std::pair(LtcCommandCode::PowderDownChip,                std::tuple(0b0101, false)),
+    std::pair(LtcCommandCode::PowerDownChip,                 std::tuple(0b0101, false)),
     std::pair(LtcCommandCode::SelectInternalReference,       std::tuple(0b0110, false)),
     std::pair(LtcCommandCode::SelectExternalReference,       std::tuple(0b0111, false))
 );
@@ -59,7 +59,7 @@ class ltc2635 : private I2cReaderWriter {
 public:
     ltc2635(const VoltageControlInput& input);
 
-    bool good() const;
+    using I2cReaderWriter::good;
 
     DAC& dac(LtcDacCode i);
     const DAC& dac(LtcDacCode i) const;
@@ -105,7 +105,6 @@ private:
         // pack_into(&message_buffer_[0], Bit4Code(&com_code), Bit4Code(&dac_code));
     }
 
-    I2cReaderWriter handle_;
     std::array<uint8_t, 3> message_buffer_;
     std::array<DAC, 4> dacs_;
 };

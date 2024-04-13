@@ -5,6 +5,9 @@
 #include "CommandSipmControlWrite.h"
 #include "CommandSipmControlRead.h"
 #include "CommandTemperatureControl.h"
+#include "CommandMuxControl.h"
+#include "CommandHumidityControl.h"
+#include "CommandSipmDacControl.h"
 
 #include <iomanip>
 

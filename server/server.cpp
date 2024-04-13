@@ -60,6 +60,8 @@ private:
 
 int main(int argc, char** argv) {
 
+    std::cout << "Beginning server!\n";
+
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " [port] [config_file]\n";
         return 1;

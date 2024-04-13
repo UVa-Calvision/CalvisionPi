@@ -19,5 +19,18 @@ SIPM UartPath /dev/ttyUSB0
 SIPM BusId 1
 SIPM DevId 0x70
 
+Mux BusId 1
+Mux DevId 0x70
+
 Temperature BusId 1
-Temperature DevId 0x38
+Temperature DevId 0x48
+
+Humidity BusId 1
+Humidity DevId 0x38
+
+SipmDac BusId 1
+SipmDac DevId 0x11
+SipmDac VMin 0
+SipmDac VMax 2.5e3
+SipmDac DacMin 0
+SipmDac DacMax 0xfff

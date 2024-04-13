@@ -13,7 +13,10 @@ INDEXED_ENUM(InputCommand,
     HV,
     LV,
     Sipm,
-    Temperature
+    Temperature,
+    Multiplexer,
+    Humidity,
+    SipmDac
 );
 
 INDEXED_ENUM(InputCommandValue,
@@ -28,7 +31,10 @@ constexpr inline auto InputCommandTable = InputTable<InputCommandIndexer>::make_
     std::pair(InputCommand::HV,             std::tuple("HV"             )),
     std::pair(InputCommand::LV,             std::tuple("LV"             )),
     std::pair(InputCommand::Sipm,           std::tuple("SIPM"           )),
-    std::pair(InputCommand::Temperature,    std::tuple("Temperature"    ))
+    std::pair(InputCommand::Multiplexer,    std::tuple("Mux"            )),
+    std::pair(InputCommand::Temperature,    std::tuple("Temperature"    )),
+    std::pair(InputCommand::Humidity,       std::tuple("Humidity"       )),
+    std::pair(InputCommand::SipmDac,        std::tuple("SipmDac"        ))
 );
 
 INDEXED_ENUM(I2cCommand, BusId, DevId)
@@ -59,6 +65,11 @@ constexpr inline auto SipmCommandTable = InputTable<SipmCommandIndexer>::make_ta
 INDEXED_ENUM(GpioCommand, Path);
 constexpr inline auto GpioCommandTable = InputTable<GpioCommandIndexer>::make_table(
     std::pair(GpioCommand::Path, std::tuple("Path"))
+);
+
+INDEXED_ENUM(HumidityCommand, NumRetries);
+constexpr inline auto HumidityCommandTable = InputTable<HumidityCommandIndexer>::make_table(
+    std::pair(HumidityCommand::NumRetries, std::tuple("NumRetries"))
 );
 
 bool parse_i2c(I2cInput& input, const std::vector<std::string>& tokens) {
@@ -143,6 +154,20 @@ bool parse_gpio(GpioInput& input, const std::vector<std::string>& tokens) {
     }
 }
 
+bool parse_humidity(HumidityInput& input, const std::vector<std::string>& tokens) {
+    if (tokens.size() != 3) return false;
+    if (auto lookup_result = HumidityCommandTable.lookup<InputCommandValue::Name>(tokens[1])) {
+        switch (lookup_result->first) {
+            case HumidityCommand::NumRetries:
+                input.num_retries = std::stol(tokens[2], nullptr, 0);
+                break;
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
 ContextInput::ContextInput(const std::string& filename) {
     std::ifstream input(filename);
     std::string line;
@@ -172,8 +197,19 @@ ContextInput::ContextInput(const std::string& filename) {
                         success =  parse_sipm(sipm_input, tokens)
                                 || (sipm_input.i2c ? parse_i2c(*sipm_input.i2c, tokens) : parse_i2c(temp, tokens));
                         } break;
+                    case InputCommand::Multiplexer: {
+                        success = parse_i2c(multiplexer_input.i2c, tokens);
+                        } break;
                     case InputCommand::Temperature: {
                         success = parse_i2c(temperature_input.i2c, tokens);
+                        } break;
+                    case InputCommand::Humidity: {
+                        success =  parse_i2c(humidity_input.i2c, tokens)
+                                || parse_humidity(humidity_input, tokens);
+                        } break;
+                    case InputCommand::SipmDac: {
+                        success =  parse_i2c(sipm_dac_input.i2c, tokens)
+                                || parse_dac(sipm_dac_input.dac, tokens);
                         } break;
                 }
 

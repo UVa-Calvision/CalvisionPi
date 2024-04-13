@@ -1,5 +1,22 @@
 #include "CommandTemperatureControl.h"
 
+bool acquire_sensor(Context& context, uint32_t sensor_number) {
+    if (context.mux_control_unavailable())
+        return false;
+
+    switch (sensor_number) {
+        case 0:
+            context.multiplexer->enable(TCA9548_Channel::Left);
+            return true;
+        case 1:
+            context.multiplexer->enable(TCA9548_Channel::Right);
+            return true;
+        default:
+            return false;
+    }
+}
+
+
 INDEXED_ENUM(RegMap, Register);
 
 constexpr inline auto CommandToRegTable = EnumTable<TemperatureControlCommandIndexer, RegMapIndexer, TMP112_Configuration>::make_table(
@@ -15,7 +32,7 @@ constexpr inline auto CommandToRegTable = EnumTable<TemperatureControlCommandInd
 template <TemperatureControlCommand reg>
 struct ControlRegisterFunctor {
     constexpr static TMP112_Configuration control_reg = CommandToRegTable.get<reg, RegMap::Register>();
-    constexpr static DataFormat data_type = TemperatureControlTable.c_get<reg, CommandValues::ParameterTypes>()[0];
+    constexpr static DataFormat data_type = TemperatureControlTable.c_get<reg, CommandValues::ParameterTypes>()[1];
     using value_type = typename format_to_type<data_type>::type;
 
     ReturnData operator()(Context& context, raw_type raw_data) const {
@@ -34,20 +51,26 @@ struct ControlRegisterFunctor {
 };
 
 ReturnData CommandTemperatureControl::execute(Context& context, TemperatureControlCommand reg) {
-    if (raw_data_.size() != 2)
+    if (raw_data_.size() != 3)
         return ReturnData(ErrorCode::PoorlyStructuredCommand);
+
+    if (!acquire_sensor(context, format_to_type<DataFormat::Uint>::convert_raw(raw_data_[1])))
+        return ReturnData(ErrorCode::ResourceUnavailable);
 
     if (context.temperature_control_unavailable())
         return ReturnData(ErrorCode::ResourceUnavailable);
 
-    return *TemperatureControlCommandIndexer::dispatch<ControlRegisterFunctor>(reg, context, raw_data_[1]);
+    return *TemperatureControlCommandIndexer::dispatch<ControlRegisterFunctor>(reg, context, raw_data_[2]);
 }
 
 
 
 ReturnData CommandTemperatureRead::execute(Context& context, TemperatureReadCommand /* reg */) {
-    if (raw_data_.size() != 1)
+    if (raw_data_.size() != 2)
         return ReturnData(ErrorCode::PoorlyStructuredCommand);
+
+    if (!acquire_sensor(context, format_to_type<DataFormat::Uint>::convert_raw(raw_data_[1])))
+        return ReturnData(ErrorCode::ResourceUnavailable);
 
     if (context.temperature_control_unavailable())
         return ReturnData(ErrorCode::ResourceUnavailable);

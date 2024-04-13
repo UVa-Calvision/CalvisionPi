@@ -49,14 +49,23 @@ struct TemperatureInput {
     I2cInput i2c;
 };
 
+struct HumidityInput {
+    I2cInput i2c;
+    size_t num_retries;
+};
 
+struct MultiplexerInput {
+    I2cInput i2c;
+};
 
 
 struct ContextInput {
     GpioInput gpio_input;
-    VoltageControlInput lv_input, hv_input;
+    VoltageControlInput lv_input, hv_input, sipm_dac_input;
     SipmCaenInput sipm_input;
     TemperatureInput temperature_input;
+    HumidityInput humidity_input;
+    MultiplexerInput multiplexer_input;
 
     ContextInput(const std::string& filename);
 };

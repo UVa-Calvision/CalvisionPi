@@ -23,7 +23,11 @@ INDEXED_ENUM(CommandCode,
     SipmControlWrite,
     SipmControlRead,
     TemperatureControl,
-    TemperatureRead
+    TemperatureRead,
+    HumidityControl,
+    MuxControl,
+    SipmDacControl,
+    SipmDacWrite
 );
 
 INDEXED_ENUM(CommandCodeValues,
@@ -38,7 +42,11 @@ constexpr inline auto CommandCodeTable = EnumTable<CommandCodeIndexer, CommandCo
     std::pair(CommandCode::SipmControlWrite,   std::tuple("SipmControlWrite",   "CAEN SiPM Voltage write commands"  )),
     std::pair(CommandCode::SipmControlRead,    std::tuple("SipmControlRead",    "CAEN SiPM Voltage read commands"   )),
     std::pair(CommandCode::TemperatureControl, std::tuple("TemperatureControl", "Temperature readout configuration" )),
-    std::pair(CommandCode::TemperatureRead,    std::tuple("TemperatureRead",    "Temperature readout"               ))
+    std::pair(CommandCode::TemperatureRead,    std::tuple("TemperatureRead",    "Temperature readout"               )),
+    std::pair(CommandCode::HumidityControl,    std::tuple("HumidityControl",    "Humidity control"                  )),
+    std::pair(CommandCode::MuxControl,         std::tuple("MuxControl",         "Multiplexer control"               )),
+    std::pair(CommandCode::SipmDacControl,     std::tuple("SipmDacControl",     "SIPM DAC configuration"            )),
+    std::pair(CommandCode::SipmDacWrite,       std::tuple("SipmDacWrite",       "SiPM DAC write commands"           ))
 );
 
 
@@ -51,7 +59,8 @@ INDEXED_ENUM(ErrorCode,
     VoltageOutOfRange,
     UnspecifiedFailure,
     CannotWrite,
-    CannotRead
+    CannotRead,
+    ResourceBusy
 );
 
 INDEXED_ENUM(ErrorCodeValue,
@@ -66,7 +75,8 @@ constexpr inline auto ErrorCodeTable = EnumTable<ErrorCodeIndexer, ErrorCodeValu
     std::pair(ErrorCode::VoltageOutOfRange,        std::tuple("Voltage out of range"      )),
     std::pair(ErrorCode::UnspecifiedFailure,       std::tuple("Unspecified failure"       )),
     std::pair(ErrorCode::CannotWrite,              std::tuple("Cannot write to register"  )),
-    std::pair(ErrorCode::CannotRead,               std::tuple("Cannot read from register" ))
+    std::pair(ErrorCode::CannotRead,               std::tuple("Cannot read from register" )),
+    std::pair(ErrorCode::ResourceBusy,             std::tuple("Resource is busy"          ))
 );
 
 struct ReturnData {
