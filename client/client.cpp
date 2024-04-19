@@ -40,8 +40,8 @@ void send_command(Socket& server, BaseCommand& command) {
             if (!batch_mode) std::cout << "\n";
             if (batch_mode) std::exit(0);
         } else {
-            if (batch_mode) std::exit(return_code);
             std::cerr << "[ERROR] Return Code: " << *ErrorCodeTable.get<ErrorCodeValue::Name>(*error_code) << "\n";
+            if (batch_mode) std::exit(return_code);
             wait_for_key();
         }
 
