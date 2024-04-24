@@ -13,7 +13,7 @@ No dependencies. Normal git-clone and cmake build steps
 git clone https://github.com/hhollenb/CalvisionPi
 cd CalvisionPi
 mkdir build && cd build
-cmake -DBUILD_SERVER=OFF ..
+cmake -DCMAKE_PREFIX_PATH=$HOME/local_install -DCMAKE_INSTALL_PREFIX=$HOME/local_install -DBUILD_SERVER=OFF .
 cmake --build . --target client
 ```
 
