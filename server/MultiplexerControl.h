@@ -12,15 +12,17 @@
 INDEXED_ENUM(TCA9548_Channel,
     Left,
     Right
-)
+);
 
 INDEXED_ENUM(TCA9548_Value,
     Code
-)
+);
+
+constexpr inline uint8_t humidity_channel = 0x40;
 
 constexpr inline auto TCA9548_ChannelTable = EnumTable<TCA9548_ChannelIndexer, TCA9548_ValueIndexer, uint8_t>::make_table(
-    std::pair(TCA9548_Channel::Left,        std::tuple(0x81)),
-    std::pair(TCA9548_Channel::Right,       std::tuple(0x41))
+    std::pair(TCA9548_Channel::Left,        std::tuple(humidity_channel | 0x00)),
+    std::pair(TCA9548_Channel::Right,       std::tuple(humidity_channel | 0x00))
 );
 
 
